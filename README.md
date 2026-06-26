@@ -59,7 +59,7 @@ author: Tuan Nguyen
 # draft: true              # hide from lists/feeds until ready
 ---
 
-Your content in Markdown...
+Your content in Markdown
 ```
 
 It appears automatically on the space's index page, the home page, and its RSS feed.
