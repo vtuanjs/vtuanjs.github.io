@@ -21,9 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: withastro/action@v3
-        # If this is a PROJECT site (repo != <username>.github.io), uncomment:
-        # with:
-        #   path: .
+        with:
+          node-version: 22
+          # If this is a PROJECT site (repo != <username>.github.io), uncomment:
+          # path: .
 
   deploy:
     needs: build
