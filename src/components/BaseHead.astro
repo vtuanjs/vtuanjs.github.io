@@ -1,0 +1,70 @@
+---
+// SEO: canonical, description, Open Graph, Twitter cards, JSON-LD.
+import { SITE, SOCIALS } from '../consts';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  publishedDate?: Date;
+}
+
+const {
+  title,
+  description = SITE.description,
+  image,
+  type = 'website',
+  publishedDate,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = image ? new URL(image, Astro.site) : undefined;
+const fullTitle = title === SITE.title ? title : `${title} · ${SITE.title}`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': type === 'article' ? 'BlogPosting' : 'WebSite',
+  headline: title,
+  description,
+  url: canonical.href,
+  author: {
+    '@type': 'Person',
+    name: SITE.author,
+    sameAs: SOCIALS.map((s) => s.href),
+  },
+  ...(publishedDate && { datePublished: publishedDate.toISOString() }),
+  ...(ogImage && { image: ogImage.href }),
+};
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<meta name="author" content={SITE.author} />
+<link rel="canonical" href={canonical} />
+
+<!-- Open Graph -->
+<meta property="og:type" content={type} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+{ogImage && <meta property="og:image" content={ogImage} />}
+
+<!-- Twitter -->
+<meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+{ogImage && <meta name="twitter:image" content={ogImage} />}
+
+<!-- Feeds -->
+<link rel="alternate" type="application/rss+xml" title="Product space" href={new URL('/product/rss.xml', Astro.site)} />
+<link rel="alternate" type="application/rss+xml" title="Technical space" href={new URL('/technical/rss.xml', Astro.site)} />
+
+<!-- Structured data -->
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+<link rel="stylesheet" href="/styles/global.css" />

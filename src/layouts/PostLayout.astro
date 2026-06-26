@@ -1,0 +1,36 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { SPACES } from '../consts';
+
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  author: string;
+  image?: string;
+  space: keyof typeof SPACES;
+}
+const { title, description, date, author, image, space } = Astro.props;
+const spaceInfo = SPACES[space];
+---
+<BaseLayout
+  title={title}
+  description={description}
+  image={image}
+  type="article"
+  publishedDate={date}
+>
+  <article class="post">
+    <p class="post-space"><a href={spaceInfo.path}>{spaceInfo.name}</a></p>
+    <h1 class="post-title">{title}</h1>
+    <p class="post-meta">
+      <time datetime={date.toISOString()}>
+        {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </time>
+      {author && <> · {author}</>}
+    </p>
+    <div class="post-content">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

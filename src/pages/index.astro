@@ -1,0 +1,56 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, SPACES } from '../consts';
+
+const byDateDesc = (a, b) => b.data.date.valueOf() - a.data.date.valueOf();
+const notDraft = (p) => !p.data.draft;
+
+const product = (await getCollection('product')).filter(notDraft).sort(byDateDesc);
+const technical = (await getCollection('technical')).filter(notDraft).sort(byDateDesc);
+
+const fmt = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+<BaseLayout title={SITE.title} description={SITE.description}>
+  <section class="hero">
+    <h1>Hi, I'm Tuan 👋</h1>
+    <p class="lead">{SITE.tagline}</p>
+  </section>
+
+  <section class="spaces">
+    <a class="space-card" href="/about/">
+      <h2>About me</h2>
+      <p>Who I am, what I work on, and how to reach me.</p>
+    </a>
+    <a class="space-card" href={SPACES.product.path}>
+      <h2>{SPACES.product.name}</h2>
+      <p>{SPACES.product.blurb}</p>
+    </a>
+    <a class="space-card" href={SPACES.technical.path}>
+      <h2>{SPACES.technical.name}</h2>
+      <p>{SPACES.technical.blurb}</p>
+    </a>
+  </section>
+
+  <section class="recent">
+    <h2>Latest from Product</h2>
+    <ul class="post-list">
+      {product.slice(0, 3).map((p) => (
+        <li>
+          <a href={`/product/${p.id}/`}>{p.data.title}</a>
+          <span class="date">{fmt(p.data.date)}</span>
+        </li>
+      ))}
+    </ul>
+
+    <h2>Latest from Technical</h2>
+    <ul class="post-list">
+      {technical.slice(0, 3).map((p) => (
+        <li>
+          <a href={`/technical/${p.id}/`}>{p.data.title}</a>
+          <span class="date">{fmt(p.data.date)}</span>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

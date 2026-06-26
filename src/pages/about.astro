@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, SOCIALS } from '../consts';
+---
+<BaseLayout title="About me" description="Who Tuan Nguyen is, what I work on, and how to get in touch.">
+  <article class="post">
+    <h1 class="post-title">About me</h1>
+    <div class="post-content">
+      <p>Hi, I'm <strong>Tuan Nguyen</strong>. I write here in two flavours:</p>
+      <ul>
+        <li><strong>Product space</strong> — how I think about products, discovery, and shipping.</li>
+        <li><strong>Technical space</strong> — engineering deep-dives and what I learn building software.</li>
+      </ul>
+
+      <h2>What I do</h2>
+      <p>
+        I'm a software engineer who enjoys turning fuzzy problems into systems
+        that are simple to reason about. I care about clean architecture,
+        pragmatic trade-offs, and shipping things that actually help the people
+        using them.
+      </p>
+      <p>
+        This blog is where I think out loud — half about how products get built
+        and why, half about the engineering details that make them work.
+      </p>
+      <p><em>(Edit this in <code>src/pages/about.astro</code> — add your role,
+      company, and the kinds of problems you like working on.)</em></p>
+
+      <h2>Get in touch</h2>
+      <ul>
+        <li>Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+        {SOCIALS.map((s) => (
+          <li>{s.label}: <a href={s.href} rel="me">{s.href.replace(/^https?:\/\//, '')}</a></li>
+        ))}
+      </ul>
+    </div>
+  </article>
+</BaseLayout>
