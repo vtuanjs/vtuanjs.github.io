@@ -3,14 +3,14 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, SPACES, SOCIALS } from '../consts';
 
-const byDateDesc = (a, b) => b.data.date.valueOf() - a.data.date.valueOf();
-const notDraft = (p) => !p.data.draft;
+const byDateDesc = (a: { data: { date: Date; }; }, b: { data: { date: Date; }; }) => b.data.date.valueOf() - a.data.date.valueOf();
+const notDraft = (p: { data: { draft: any; }; }) => !p.data.draft;
 
 const product = (await getCollection('product')).filter(notDraft).sort(byDateDesc);
 const technical = (await getCollection('technical')).filter(notDraft).sort(byDateDesc);
 const ai = (await getCollection('ai')).filter(notDraft).sort(byDateDesc);
 
-const fmt = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 ---
 <BaseLayout title={SITE.title} description={SITE.description}>
   <section class="hero">
