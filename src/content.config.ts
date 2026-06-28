@@ -22,4 +22,9 @@ const technical = defineCollection({
   schema: postSchema,
 });
 
-export const collections = { product, technical };
+const ai = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/ai' }),
+  schema: postSchema,
+});
+
+export const collections = { product, technical, ai };

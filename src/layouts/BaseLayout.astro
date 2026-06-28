@@ -23,5 +23,44 @@ const props = Astro.props;
       <slot />
     </main>
     <Footer />
+
+    <script>
+      // Render any ```mermaid diagrams. Mermaid is heavy, so we only load it
+      // when a page actually contains a diagram (dynamic import => its own chunk).
+      const blocks = Array.from(document.querySelectorAll<HTMLElement>('pre.mermaid'));
+      if (blocks.length) {
+        const { default: mermaid } = await import('mermaid');
+        // Cache the raw source so we can re-render when the theme changes.
+        blocks.forEach((el) => { el.dataset.src = el.textContent || ''; });
+
+        const renderAll = async () => {
+          const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+          mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', securityLevel: 'strict' });
+          blocks.forEach((el) => {
+            el.removeAttribute('data-processed');
+            el.textContent = el.dataset.src || '';
+          });
+          await mermaid.run({ nodes: blocks });
+        };
+
+        await renderAll();
+
+        // Re-draw with matching colors when the dark/light toggle flips.
+        new MutationObserver((muts) => {
+          if (muts.some((m) => m.attributeName === 'data-theme')) renderAll();
+        }).observe(document.documentElement, { attributes: true });
+      }
+    </script>
+
+    <style is:global>
+      pre.mermaid {
+        background: none;
+        padding: 0;
+        text-align: center;
+        overflow-x: auto;
+      }
+      pre.mermaid:not([data-processed]) { visibility: hidden; }
+      pre.mermaid svg { max-width: 100%; height: auto; }
+    </style>
   </body>
 </html>

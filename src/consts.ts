@@ -12,6 +12,7 @@ export const NAV = [
   { href: '/about/', label: 'About me' },
   { href: '/product/', label: 'Product' },
   { href: '/technical/', label: 'Technical' },
+  { href: '/ai/', label: 'AI' },
 ];
 
 // Social profiles — shown on the About page and emitted as JSON-LD `sameAs`.
@@ -31,5 +32,10 @@ export const SPACES = {
     name: 'Technical space',
     blurb: 'Engineering write-ups, architecture, and lessons from the code.',
     path: '/technical/',
+  },
+  ai: {
+    name: 'AI space',
+    blurb: 'How I actually use AI in my work — real workflows, what worked, what didn\'t, and the judgment behind it.',
+    path: '/ai/',
   },
 } as const;
