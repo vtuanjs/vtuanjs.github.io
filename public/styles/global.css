@@ -110,6 +110,23 @@ a:hover { text-decoration: underline; }
 .social-links a:hover { color: var(--accent); }
 
 @media (prefers-color-scheme: dark) {
-  :root { --ink: #e5e7eb; --bg: #0b0f17; --line: #1f2937; --muted: #9ca3af; --accent: #60a5fa; }
-  .post-content :not(pre) > code { background: #1f2937; }
+  :root:not([data-theme="light"]) { --ink: #e5e7eb; --bg: #0b0f17; --line: #1f2937; --muted: #9ca3af; --accent: #60a5fa; }
+  :root:not([data-theme="light"]) .post-content :not(pre) > code { background: #1f2937; }
 }
+
+:root[data-theme="dark"] { --ink: #e5e7eb; --bg: #0b0f17; --line: #1f2937; --muted: #9ca3af; --accent: #60a5fa; }
+:root[data-theme="dark"] .post-content :not(pre) > code { background: #1f2937; }
+
+/* Theme toggle button */
+.theme-toggle {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: .3rem .5rem;
+  margin-left: 1.25rem;
+}
+.theme-toggle:hover { color: var(--accent); }

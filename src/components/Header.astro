@@ -11,5 +11,28 @@ const path = Astro.url.pathname;
         aria-current={path.startsWith(item.href) ? 'page' : undefined}
       >{item.label}</a>
     ))}
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">🌙</button>
   </nav>
 </header>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.getElementById('theme-toggle') as HTMLButtonElement;
+
+  const saved = localStorage.getItem('theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = saved ? saved === 'dark' : prefersDark;
+
+  function apply(dark: boolean) {
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    btn.textContent = dark ? '☀️' : '🌙';
+  }
+
+  apply(isDark);
+
+  btn.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') !== 'dark';
+    localStorage.setItem('theme', next ? 'dark' : 'light');
+    apply(next);
+  });
+</script>
