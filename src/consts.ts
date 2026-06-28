@@ -9,7 +9,6 @@ export const SITE = {
 };
 
 export const NAV = [
-  { href: '/about/', label: 'About me' },
   { href: '/product/', label: 'Product' },
   { href: '/technical/', label: 'Technical' },
   { href: '/ai/', label: 'AI' },
