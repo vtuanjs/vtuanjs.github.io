@@ -1,0 +1,24 @@
+---
+import { render } from 'astro:content';
+import PostLayout from '../../../layouts/PostLayout.astro';
+import { SPACE_IDS, type SpaceId } from '../../../consts';
+import { stripVi } from '../../../lib/i18n';
+import { loadPosts } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const space of SPACE_IDS) {
+    for (const post of await loadPosts(space, 'vi', { drafts: true })) {
+      paths.push({ params: { space, slug: stripVi(post.id) }, props: { post } });
+    }
+  }
+  return paths;
+}
+
+const { post } = Astro.props;
+const space = Astro.params.space as SpaceId;
+const { Content } = await render(post);
+---
+<PostLayout {...post.data} space={space} lang="vi">
+  <Content />
+</PostLayout>

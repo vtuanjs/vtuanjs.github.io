@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import { SPACES } from '../consts';
+import type { SpaceId } from '../consts';
+import { spaceMeta, formatDate, type Lang } from '../lib/i18n';
 
 interface Props {
   title: string;
@@ -8,10 +9,20 @@ interface Props {
   date: Date;
   author: string;
   image?: string;
-  space: keyof typeof SPACES;
+  space: SpaceId;
+  lang?: Lang;
+  vi_url?: string;
+  en_url?: string;
 }
-const { title, description, date, author, image, space } = Astro.props;
-const spaceInfo = SPACES[space];
+const { title, description, date, author, image, space, lang = 'en', vi_url, en_url } = Astro.props;
+const info = spaceMeta(space, lang);
+
+// Counterpart in the other language for the header toggle. Fall back to the
+// other language's space index when this post has no translation yet — in
+// that case we ask the reader to confirm rather than redirect silently.
+const hasTranslation = lang === 'vi' ? !!en_url : !!vi_url;
+const altUrl =
+  lang === 'vi' ? en_url ?? `/${space}/` : vi_url ?? `/vi/${space}/`;
 ---
 <BaseLayout
   title={title}
@@ -19,14 +30,14 @@ const spaceInfo = SPACES[space];
   image={image}
   type="article"
   publishedDate={date}
+  altUrl={altUrl}
+  altConfirm={!hasTranslation}
 >
   <article class="post">
-    <p class="post-space"><a href={spaceInfo.path}>{spaceInfo.name}</a></p>
+    <p class="post-space"><a href={info.path}>{info.name}</a></p>
     <h1 class="post-title">{title}</h1>
     <p class="post-meta">
-      <time datetime={date.toISOString()}>
-        {date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-      </time>
+      <time datetime={date.toISOString()}>{formatDate(date, lang)}</time>
       {author && <> · {author}</>}
     </p>
     <div class="post-content">

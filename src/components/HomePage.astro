@@ -1,0 +1,69 @@
+---
+// The landing page, rendered for either language. /index.astro and
+// /vi/index.astro are thin wrappers that just pick the `lang`.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactList from './ContactList.astro';
+import { SITE, SPACE_IDS } from '../consts';
+import { spaceMeta, formatDate, stripVi, UI, type Lang } from '../lib/i18n';
+import { loadPosts } from '../lib/posts';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const t = UI[lang].home;
+
+const spaces = SPACE_IDS.map((id) => spaceMeta(id, lang));
+const recent = await Promise.all(
+  SPACE_IDS.map(async (id) => {
+    const meta = spaceMeta(id, lang);
+    return { label: meta.label, path: meta.path, posts: (await loadPosts(id, lang)).slice(0, 3) };
+  })
+);
+---
+<BaseLayout title={SITE.title} description={t.description}>
+  <section class="hero">
+    <p class="lang-note" set:html={t.langNoteHtml}></p>
+    <h1>{t.greeting}</h1>
+    {t.lead.map((p) => <p class="lead">{p}</p>)}
+    <ContactList />
+  </section>
+
+  <section class="spaces">
+    {spaces.map((s) => (
+      <a class="space-card" href={s.path}>
+        <h2>{s.name}</h2>
+        <p>{s.blurb}</p>
+      </a>
+    ))}
+  </section>
+
+  <section class="recent">
+    {recent.map((r) => (
+      <>
+        <h2>{t.latestFrom} {r.label}</h2>
+        <ul class="post-list">
+          {r.posts.map((p) => (
+            <li>
+              <a href={`${r.path}${stripVi(p.id)}/`}>{p.data.title}</a>
+              <span class="date">{formatDate(p.data.date, lang, 'short')}</span>
+            </li>
+          ))}
+        </ul>
+      </>
+    ))}
+  </section>
+</BaseLayout>
+
+<style>
+  .lang-note {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .lang-note :global(strong) { color: var(--ink); }
+</style>

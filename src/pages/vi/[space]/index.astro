@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostList from '../../../components/PostList.astro';
+import { SPACE_IDS, type SpaceId } from '../../../consts';
+import { spaceMeta } from '../../../lib/i18n';
+import { loadPosts } from '../../../lib/posts';
+
+export function getStaticPaths() {
+  return SPACE_IDS.map((space) => ({ params: { space } }));
+}
+
+const space = Astro.params.space as SpaceId;
+const meta = spaceMeta(space, 'vi');
+const posts = await loadPosts(space, 'vi');
+---
+<BaseLayout title={meta.name} description={meta.blurb}>
+  <h1>{meta.name}</h1>
+  <p class="lead">{meta.blurb}</p>
+  <PostList posts={posts} space={space} lang="vi" />
+</BaseLayout>

@@ -2,6 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { langFromPath } from '../lib/i18n';
 
 interface Props {
   title: string;
@@ -9,16 +10,22 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   publishedDate?: Date;
+  // Counterpart URL in the other language, forwarded to the Header toggle.
+  altUrl?: string;
+  // When true, the counterpart is a fallback (no real translation) — the
+  // toggle asks the reader to confirm before navigating.
+  altConfirm?: boolean;
 }
-const props = Astro.props;
+const { altUrl, altConfirm, ...headProps } = Astro.props;
+const lang = langFromPath(Astro.url.pathname);
 ---
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
-    <BaseHead {...props} />
+    <BaseHead {...headProps} />
   </head>
   <body>
-    <Header />
+    <Header altUrl={altUrl} altConfirm={altConfirm} />
     <main class="site-main">
       <slot />
     </main>

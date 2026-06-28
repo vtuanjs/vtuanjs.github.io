@@ -1,6 +1,6 @@
 ---
 // SEO: canonical, description, Open Graph, Twitter cards, JSON-LD.
-import { SITE, SOCIALS, SPACES } from '../consts';
+import { SITE, SOCIALS, SPACE_IDS, SPACES } from '../consts';
 
 interface Props {
   title: string;
@@ -61,8 +61,8 @@ const jsonLd = {
 {ogImage && <meta name="twitter:image" content={ogImage} />}
 
 <!-- Feeds (auto-discovery for RSS readers) — one per space -->
-{Object.values(SPACES).map((space) => (
-  <link rel="alternate" type="application/rss+xml" title={space.name} href={new URL(`${space.path}rss.xml`, Astro.site)} />
+{SPACE_IDS.map((id) => (
+  <link rel="alternate" type="application/rss+xml" title={SPACES[id].en.name} href={new URL(`${SPACES[id].path}rss.xml`, Astro.site)} />
 ))}
 
 <!-- Structured data -->

@@ -1,0 +1,21 @@
+---
+// Email + social links. Shared by the home and about pages, both languages.
+import { SITE, SOCIALS } from '../consts';
+---
+<ul class="contact-list">
+  <li>Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+  {SOCIALS.map((s) => (
+    <li>{s.label}: <a href={s.href} rel="me">{s.href.replace(/^https?:\/\//, '')}</a></li>
+  ))}
+</ul>
+
+<style>
+  .contact-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+</style>

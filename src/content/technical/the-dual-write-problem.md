@@ -4,6 +4,7 @@ description: "When you write to your database and a message broker in one operat
 date: 2026-06-28
 author: Tuan Nguyen
 draft: false
+vi_url: /vi/technical/van-de-dual-write/
 ---
 
 > **Part 1 of 2.** Build the outbox by hand. In [Part 2](/technical/streaming-the-outbox-with-cdc/), change-data-capture replaces the relay.

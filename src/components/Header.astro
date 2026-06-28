@@ -1,19 +1,131 @@
 ---
-import { SITE, NAV } from '../consts';
+import { SITE } from '../consts';
+import { langFromPath, navItems, UI } from '../lib/i18n';
+
+interface Props {
+  // Counterpart URL in the other language. Posts pass this explicitly because
+  // their slugs differ between languages; static pages let us derive it.
+  altUrl?: string;
+  // When true, altUrl is a fallback (this page has no real translation), so
+  // the toggle confirms before navigating instead of redirecting silently.
+  altConfirm?: boolean;
+}
+const { altUrl, altConfirm } = Astro.props;
+
 const path = Astro.url.pathname;
+const lang = langFromPath(path);
+const isVi = lang === 'vi';
+const t = UI[lang];
+
+const nav = navItems(lang);
+const homeHref = isVi ? '/vi/' : '/';
+
+// The toggle target: an explicit counterpart if given, otherwise the same
+// page with the /vi prefix added or stripped.
+const swapped = isVi ? path.replace(/^\/vi/, '') || '/' : `/vi${path}`;
+const enHref = isVi ? altUrl ?? swapped : path;
+const viHref = isVi ? path : altUrl ?? swapped;
+
+// Message shown when the target page has no real translation yet.
+const confirmAttr = altConfirm ? t.confirmSwitch : undefined;
+const cancelLabel = t.cancel;
+const okLabel = t.ok;
 ---
 <header class="site-header">
-  <a class="site-title" href="/">{SITE.title}</a>
+  <a class="site-title" href={homeHref}>{SITE.title}</a>
   <nav class="site-nav">
-    {NAV.map((item) => (
+    {nav.map((item) => (
       <a
         href={item.href}
         aria-current={path.startsWith(item.href) ? 'page' : undefined}
       >{item.label}</a>
     ))}
+    <span class="lang-switch" aria-label="Language">
+      {isVi
+        ? <a href={enHref} data-confirm={confirmAttr}>EN</a>
+        : <span class="active" aria-current="true">EN</span>
+      }
+      <span class="sep">/</span>
+      {isVi
+        ? <span class="active" aria-current="true">VI</span>
+        : <a href={viHref} data-confirm={confirmAttr}>VI</a>
+      }
+    </span>
     <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">🌙</button>
   </nav>
 </header>
+
+<div class="lang-modal" id="lang-modal" hidden role="dialog" aria-modal="true" aria-labelledby="lang-modal-msg">
+  <div class="lang-modal__backdrop" data-close></div>
+  <div class="lang-modal__box">
+    <p class="lang-modal__msg" id="lang-modal-msg"></p>
+    <div class="lang-modal__actions">
+      <button type="button" class="lang-modal__btn" data-close>{cancelLabel}</button>
+      <button type="button" class="lang-modal__btn lang-modal__btn--primary" id="lang-modal-ok">{okLabel}</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .lang-switch {
+    margin-left: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .lang-switch a { margin-left: 0; }
+  .lang-switch .active { color: var(--ink); font-weight: 600; }
+  .lang-switch .sep { margin: 0 0.2rem; opacity: 0.5; }
+
+  .lang-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .lang-modal[hidden] { display: none; }
+  .lang-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+  .lang-modal__box {
+    position: relative;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1.5rem;
+    max-width: 26rem;
+    width: 100%;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  }
+  .lang-modal__msg { margin: 0 0 1.25rem; line-height: 1.5; }
+  .lang-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+  }
+  .lang-modal__btn {
+    font: inherit;
+    cursor: pointer;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+  }
+  .lang-modal__btn:hover { border-color: var(--accent); color: var(--accent); }
+  .lang-modal__btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .lang-modal__btn--primary:hover { opacity: 0.9; color: #fff; }
+</style>
 
 <script>
   const root = document.documentElement;
@@ -35,4 +147,38 @@ const path = Astro.url.pathname;
     localStorage.setItem('theme', next ? 'dark' : 'light');
     apply(next);
   });
+
+  // Pages without a real translation fall back to a category page — confirm
+  // via an in-page modal so the language switch is never silent.
+  const modal = document.getElementById('lang-modal') as HTMLElement | null;
+  if (modal) {
+    const msgEl = document.getElementById('lang-modal-msg') as HTMLElement;
+    const okBtn = document.getElementById('lang-modal-ok') as HTMLButtonElement;
+    let pendingHref: string | null = null;
+    let lastFocused: HTMLElement | null = null;
+
+    const close = () => {
+      modal.hidden = true;
+      pendingHref = null;
+      lastFocused?.focus();
+    };
+    const open = (href: string, message: string, trigger: HTMLElement) => {
+      pendingHref = href;
+      lastFocused = trigger;
+      msgEl.textContent = message;
+      modal.hidden = false;
+      okBtn.focus();
+    };
+
+    document.querySelectorAll<HTMLAnchorElement>('.lang-switch a[data-confirm]').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        open(a.getAttribute('href') || '/', a.dataset.confirm || '', a);
+      });
+    });
+
+    okBtn.addEventListener('click', () => { if (pendingHref) window.location.href = pendingHref; });
+    modal.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', close));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
+  }
 </script>
