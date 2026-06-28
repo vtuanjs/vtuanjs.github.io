@@ -29,9 +29,10 @@ When in doubt about whether a change touches wording vs. idea: assume it touches
 3. **Flow** — transitions between paragraphs so the existing argument reads smoothly. No new logic, just connective tissue.
 4. **Plain language** — define jargon the first time, or swap needless jargon for plain words *when the meaning is identical*. Keep terms of art the author clearly intends.
 5. **Grammar, spelling, punctuation, consistency** — tense, person, capitalization of product names, code formatting in prose.
-6. **Concision** — tighten filler ("in order to" → "to", "the fact that" → "that") without dropping meaning.
+6. **Concision — readers are lazy, so cut the lê thê.** Tighten filler ("in order to" → "to", "the fact that" → "that") and, more importantly, hunt verbose/rambling phrasing: wind-up clauses that delay the point, the same idea restated twice for rhythm, long-winded constructions where a short one says the same thing. The test: if a sentence or clause can go without losing an *idea*, cut it. Say each point once, sharply. This is wording-only — never drop a reason, claim, or piece of reasoning; only the words used to express it.
 7. **Strip AI tells** — remove all emoji (prose, headings, tables, diagram labels) and cut phrasing that reads as machine-written: "let's dive in", "in conclusion", "it's important to note", reflexive hedging, and bullet padding. Make it sound like a person wrote it. This is wording-only — never change the underlying point.
-7. **Accessibility** — alt text suggestions, descriptive link text.
+8. **Technical language (Technical posts)** — favor precise terms of art over vague analogies, and cut decorative/emotional flourish that carries no technical information ("sitting right there", "a bad afternoon", dramatic build-ups). Test: if removing a phrase loses no engineering information, cut it. Strong opinions and judgment are *substance*, not decoration — keep every one. This is register-only: tighten how the reasoning is phrased, never reduce the reasoning itself or change a claim.
+9. **Accessibility** — alt text suggestions, descriptive link text.
 
 ## Make it scannable without making it shallow (layered depth)
 
@@ -78,6 +79,8 @@ Keep visual suggestions proportional — a short post may need none. Don't pad.
 
 - [ ] Every original idea, opinion, and conclusion is still present and unchanged in meaning.
 - [ ] The author's voice and strong takes are intact.
+- [ ] (Technical) Language is precise and technical; decorative/emotional flourish carrying no engineering information is cut — reasoning and opinions untouched.
+- [ ] Prose is tight: no verbose wind-ups, no idea restated twice, no clause that can go without losing an idea. Each point said once.
 - [ ] No new claims, facts, or examples were introduced.
 - [ ] Edits are wording/structure/presentation only.
 - [ ] Prose that a diagram or table would carry better has been flagged or converted — with no change to the idea.

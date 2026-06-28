@@ -15,6 +15,16 @@ Each post belongs to exactly one collection. Pick the right one with the user; i
 - **Product** (`src/content/product/`) — the *why* behind a product mechanic. Authorization, multi-tenancy, bounded contexts, audit, re-platforming — abstracted to the general problem.
 - **AI** (`src/content/ai/`) — an honest logbook of how AI is *actually* used in real engineering/product work. See the extra AI rules below.
 
+## Technical language (Technical space)
+
+Technical posts are carried by **precise engineering language, not emotion or decoration.** The substance is the draw — say what happens technically and let the engineering do the work.
+
+- **Use the exact terms of art.** Name the real mechanism — `transaction`, `commit`, `idempotent`, `write-ahead log`, `at-least-once` — not a vague analogy for it. Precision signals expertise; hand-waving hides it.
+- **Cut decorative and emotional phrasing.** No dramatic build-ups, no literary flourishes ("sitting right there", "a bad afternoon", "the dreaded…"). State the failure mode, the constraint, the trade-off. If removing a phrase loses no technical information, cut it.
+- **A hook is still concrete, but technical.** Open on the specific failure or decision — the symptom, the log line, the constraint that bit — not a mood or a story for its own sake. Concrete ≠ emotional.
+- **Strong takes stay; they're substance, not decoration.** Blunt opinions and judgment calls ("I avoid 2PC here") are the point — keep them. Blunt ≠ dramatic; trim the flourish, never the verdict.
+- **This is about register, not depth.** Keep all the reasoning (see layered depth below). Technical language means expressing that reasoning precisely and plainly, not writing less of it.
+
 ## The rules that define every post
 
 These are non-negotiable. They are what make the writing worth reading.
@@ -36,6 +46,7 @@ Rules that make depth scannable instead of shorter:
 - **Mermaid is the default visual** (this repo renders ` ```mermaid ` blocks live, theme-aware). Use it for sequences, flows, decision trees, boundaries. Color failure nodes (e.g. `style X fill:#7f1d1d,color:#fff`) so the eye lands on them.
 - **Front-load the takeaway, then go deep.** Lead each section with the conclusion in a bold sentence the scanner catches, then expand for the reader who stays. Progressive disclosure, not omission.
 - **Length follows coverage, not a cap.** Write as much as it takes to fully exhaust the *why* of one small problem — typically substantial. Cut padding and anything a diagram already says, never the reasoning. Don't pad to seem deep; don't trim to seem brief.
+- **Tight prose — readers are lazy.** Every sentence must earn its place. No verbose wind-ups, no restating the same point twice for rhythm, no long-winded phrasing where a short one carries the same meaning. The test: if a sentence (or clause) can go without losing an idea, it goes. This is about *wordiness*, not depth — say each point once, sharply, then move on. A reader who has to wade through filler stops reading before they reach the depth.
 
 ## Open with Problem / Why / Goal — always
 
@@ -105,7 +116,7 @@ The AI space has its own voice — honest, anti-hype, judgment-in-the-loop:
 1. **Get the seed.** Take the user's topic/pitch. If it's broad, narrow it to one defensible decision before writing. If it spans two decisions, propose splitting into two posts.
 2. **Confirm the space** (technical / product / AI) and a working title.
 3. **Find the trade-off first.** Before drafting, get clear on what the chosen answer *costs*. If the cost can't be named, the problem isn't understood yet — discuss it with the user rather than writing around it.
-4. **Draft in his voice** — first person, direct, opinionated, no hedging-by-default and no corporate neutrality. Strong takes are welcome when he holds them; don't invent opinions he hasn't expressed. **Write like a human, not an AI: no emoji anywhere** (prose, headings, tables, diagram labels), no bullet-point padding, no "in conclusion" / "let's dive in" filler, no over-hedged qualifiers. Plain, natural sentences.
+4. **Draft in his voice** — first person, direct, opinionated, no hedging-by-default and no corporate neutrality. Strong takes are welcome when he holds them; don't invent opinions he hasn't expressed. **Write like a human, not an AI: no emoji anywhere** (prose, headings, tables, diagram labels), no bullet-point padding, no "in conclusion" / "let's dive in" filler, no over-hedged qualifiers. Plain, natural sentences. **For Technical posts, favor precise technical language over emotion or decoration** (see "Technical language" above).
 5. **Sanitize as you go** — every snippet and example passes the snippet-discipline bar. Re-read asking: *does this reveal his system, or teach a pattern?* Cut anything that's the former.
 6. **Write the file** to the right collection dir with correct frontmatter and `draft: true`.
 7. **Tell the user how to preview** — `npm run dev`, then the post appears on its space page and the home page. Remind them to flip `draft: true` off (or remove it) to publish.
@@ -113,6 +124,8 @@ The AI space has its own voice — honest, anti-hype, judgment-in-the-loop:
 ## Checklist before finishing
 
 - [ ] No emoji anywhere; reads like a human wrote it, not an AI.
+- [ ] (Technical) Precise terms of art, not vague analogies; decorative/emotional phrasing cut, but every strong take and all reasoning kept.
+- [ ] Tight prose: no verbose wind-ups, no point restated twice, no clause that can go without losing an idea. Each point said once, sharply.
 - [ ] Exactly one small problem; the *why* is fully exhausted.
 - [ ] Lead is the decision and reasoning, not background or documentation.
 - [ ] The trade-off section names a real cost and when he'd choose differently.

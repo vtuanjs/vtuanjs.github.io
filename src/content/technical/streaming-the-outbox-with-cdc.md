@@ -4,6 +4,7 @@ description: "How change-data-capture with Debezium replaces a hand-written outb
 date: 2026-06-28
 author: Tuan Nguyen
 draft: false
+vi_url: /vi/technical/stream-outbox-bang-cdc/
 ---
 
 > **Part 2 of 2.** [Part 1](/technical/the-dual-write-problem/) built an outbox with a polling relay. Now we delete the relay.
@@ -84,7 +85,7 @@ One detail worth stealing: route request-context fields — trace IDs, the actin
 
 ## The trade-off
 
-CDC deletes the relay, but it does not delete cost — it swaps a problem I fully understood for a few I had to learn the hard way. This is the section I wish someone had shown me first.
+CDC deletes the relay, but not the cost — it swaps a problem I understood for a few I didn't.
 
 | Cost | What bites you |
 |---|---|
@@ -94,14 +95,8 @@ CDC deletes the relay, but it does not delete cost — it swaps a problem I full
 | **You now run Kafka Connect** | A cluster, a connector, a slot + publication to provision, a new dashboard |
 | **Still at-least-once** | Re-delivers after a restart → consumers **must stay idempotent** (same as Part 1) |
 
-**The replication slot is a loaded gun pointed at your database.** A logical slot makes Postgres *retain WAL* until the consumer confirms it has read past that point. If Debezium goes down — a crash, a bad deploy, a network partition — the slot stops advancing and Postgres dutifully keeps every WAL segment since. On a busy database that fills the disk and takes down the *entire database*, not just your event pipeline. The hand-written relay could never hurt the database like this; the worst it could do was fall behind. This single shift in blast radius is the biggest reason CDC is not a free upgrade, and slot-lag monitoring is not optional — it's day-one work.
+Only one cost is genuinely dangerous: the **replication slot**. A logical slot makes Postgres retain WAL until the consumer reads past that point. If Debezium goes down unnoticed, WAL piles up, the disk fills, and **the entire database goes down** — not just your event pipeline. The hand-written relay at worst fell behind; the slot can take down the DB, so slot-lag monitoring is mandatory from day one. Two variants of the same risk: a low-traffic database pins the slot at an old position for hours — fixed with a **heartbeat**, having Debezium periodically write a tiny row so the slot advances; and `snapshot.mode: never` does no backfill, so the slot must exist *before* the first outbox write or that first event is lost.
 
-**Quiet databases make it paradoxically worse.** The slot only advances when the WAL moves, so a database that rarely writes can leave the slot pinned to an old position for hours, silently accumulating retained WAL. The fix is a **heartbeat**: have Debezium periodically write a tiny row to a dedicated table, which generates WAL, which lets the slot advance. You end up adding writes for the sole purpose of keeping the log moving — deeply counterintuitive until the first disk-fill incident teaches you why it's there.
+The rest is operational overhead. You now run Kafka Connect — a cluster, a connector, a slot/publication (provisioned in Terraform), a dashboard — worth it across many streams, overkill for one. And it's still at-least-once: consumers must stay idempotent, exactly as in Part 1.
 
-**`snapshot.mode: never` means there is no safety net on cold start.** I configure the connector *not* to snapshot the table when it first starts — it begins from the current WAL position. That's correct for an outbox, where old rows are already published. But it also means a slot created too late, or a connector pointed at the wrong position, will silently skip events with no error to tell you. Provisioning the publication and slot *before* the first write is part of the design, not an afterthought.
-
-**And you are now operating Kafka Connect.** The relay was a few lines inside a service I already ran. Debezium is a Connect cluster to keep alive, a connector to register and version, a slot and publication to provision (I do this in Terraform so it never becomes click-ops), and a fresh dashboard to watch. For a single event stream that is a lot of machinery for not much. The arithmetic flips when you have many streams across many services — that's exactly when CDC starts paying for itself.
-
-**Everything from Part 1 still holds.** It's still at-least-once — Debezium re-delivers from the last committed WAL offset after a restart — so **consumers must still be idempotent.** CDC changed how events leave the database. It changed nothing about how they must be received.
-
-Would I do it again? For a single low-volume stream, the polling relay from Part 1 is genuinely fine and I'd stop there — less to break, no slot to babysit. I reach for CDC when the relay stops being the simple part: many tables across many services, latency that actually matters to a user, or a polling loop whose own load on the database has become the problem. At that scale, deleting N hand-written relays and reading the log the database already keeps is the better trade — **as long as someone is watching that slot.**
+Would I do it again? For a single low-volume stream, the polling relay from Part 1 is genuinely fine and I'd stop there — less to break, no slot to babysit. I reach for CDC when the relay stops being the simple part: many tables across many services, latency that actually matters to a user, or a polling loop whose own load on the database has become the problem. At that scale, deleting N hand-written relays to read the log the database already keeps is the better trade — **as long as someone is watching that slot.**

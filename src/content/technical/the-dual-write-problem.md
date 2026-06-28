@@ -9,7 +9,7 @@ vi_url: /vi/technical/van-de-dual-write/
 
 > **Part 1 of 2.** Build the outbox by hand. In [Part 2](/technical/streaming-the-outbox-with-cdc/), change-data-capture replaces the relay.
 
-The first time it bit me, the symptom was a customer email that never arrived. The order was in the database — paid, confirmed, sitting right there. But the "order placed" event was never published, so the service that sends the email never woke up. No exception, no failed request, no red line in any log. The code had done exactly what it was told.
+The first time it bit me, the symptom was a customer email that never arrived. The order was in the database — paid, confirmed. But the "order placed" event was never published, so the service that sends the email never woke up. No exception, no failed request, no line in any log. The code had done exactly what it was told.
 
 | | |
 |---|---|
@@ -98,8 +98,8 @@ The outbox isn't free. The bill comes in three parts, and naming them is the poi
 | **Ordering is now your job** | A multi-worker relay reorders events under concurrency | Single writer per key — which caps throughput |
 | **Latency + a moving part** | Events ship on the poll interval, not instantly; the relay is a process to run | Monitor outbox backlog; alert when it grows |
 
-The first one matters most, so it's worth dwelling on. At-least-once isn't a flaw I'm tolerating — it's the *correct* default. The alternative, marking the row published *before* you publish, gives you at-most-once, which silently drops events: the exact bug we started with, reintroduced. So at-least-once is right, but it pushes a hard requirement downstream: **every consumer must be idempotent.** If a duplicate "order placed" charges a card twice, you haven't solved your problem — you've moved it into someone else's service. (That's its own post: idempotency keys and dedup windows.)
+The first one matters most. At-least-once isn't a flaw I'm tolerating — it's the *correct* default. The alternative, marking the row published *before* you publish, gives you at-most-once, which silently drops events: the exact bug we started with. But it pushes a hard requirement downstream: **every consumer must be idempotent.** If a duplicate "order placed" charges a card twice, you haven't solved your problem — you've moved it into someone else's service. (Its own post: idempotency keys and dedup windows.)
 
-I still reach for the outbox almost every time, because of *which* failure each side leaves you with. Without it: committed data, lost event, no error — a bug that surfaces as a confused customer days later, with nothing in the logs to trace. With it: an occasional duplicate, which a dedup key turns into a no-op. **I will take a duplicate I can dedupe over a silent drop I can't even detect, every single time.**
+I still reach for the outbox almost every time, because of *which* failure each side leaves you with. Without it: committed data, lost event, no error, nothing in the logs to trace. With it: an occasional duplicate, which a dedup key turns into a no-op. **I will take a duplicate I can dedupe over a silent drop I can't even detect, every single time.**
 
-That relay I have to write, run, and watch is the one cost I'd most like to delete. And it turns out I can: the database already keeps a perfect, ordered log of every commit — the write-ahead log. **[Part 2](/technical/streaming-the-outbox-with-cdc/) reads that log directly with Debezium, and the hand-written relay disappears** — in exchange for a different, sharper set of trade-offs.
+That relay I write, run, and watch is the one cost I'd most like to delete. It turns out I can: the database already keeps a complete, ordered log of every commit — the write-ahead log. **[Part 2](/technical/streaming-the-outbox-with-cdc/) reads that log directly with Debezium, and the hand-written relay disappears** — in exchange for a different, sharper set of trade-offs.
