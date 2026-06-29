@@ -14,7 +14,7 @@ const meta = spaceMeta(space, 'en');
 const posts = await loadPosts(space, 'en');
 ---
 <BaseLayout title={meta.name} description={meta.blurb}>
-  <h1>{meta.name}</h1>
+  <h1>{meta.name} <span class="post-count">({posts.length})</span></h1>
   <p class="lead">{meta.blurb} <a href={`${meta.path}rss.xml`}>RSS</a></p>
   <PostList posts={posts} space={space} lang="en" />
 </BaseLayout>

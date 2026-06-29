@@ -25,6 +25,6 @@ const posts = allPosts.filter((p) => p.data.tags.includes(tag));
 ---
 <BaseLayout title={`${tag} · ${meta.name}`} description={`Bài viết với nhãn "${tag}" trong ${meta.name}`}>
   <p class="post-space"><a href={meta.path}>{meta.name}</a></p>
-  <h1>Nhãn: {tag}</h1>
+  <h1>Nhãn: {tag} <span class="post-count">({posts.length})</span></h1>
   <PostList posts={posts} space={space} lang="vi" />
 </BaseLayout>

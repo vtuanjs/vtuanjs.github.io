@@ -1,131 +1,112 @@
 ---
-title: "Trunk-based development: deploy mỗi merge, release theo chủ ý"
-description: "Giữ rủi ro integration thấp mà vẫn kiểm soát được những gì người dùng thấy."
+title: "Trunk-based development: vấn đề phối hợp, không phải vấn đề Git"
+description: "Branch sống lâu là dấu hiệu team đang rối. Cách tách integration khỏi release và trao quyền kiểm soát release cho product."
 date: 2026-06-29
 author: Tuan Nguyen
 draft: false
 lang: vi
-tags: ["git", "ci-cd", "engineering-process", "feature-flags", "devops"]
+tags: ["engineering-process", "team-dynamics", "release-management", "feature-flags"]
 en_url: /management/trunk-based-development/
 ---
 
-Một engineer mở PR sau hai tuần làm trên feature branch. Diff 800 dòng. Ba reviewer ngán: review mất cả ngày, conflict với hai branch khác đang chờ merge, deploy phải chờ ai đó kiểm tra thủ công trước khi chắc chắn không có gì vỡ. Code chạy đúng khi làm riêng. Có chạy đúng với phần còn lại không — chỉ biết khi ship.
+Engineer mở PR sau hai tuần làm trên feature branch. Diff 800 dòng. Ba reviewer ngán. Review mất cả ngày. Hai branch khác đang chờ merge. Deploy nín thở cho đến khi ai đó kiểm tra thủ công xong.
 
-**Vấn đề không phải là branch quá dài. Vấn đề là integration bị trì hoãn.**
+**Vấn đề không phải là branch quá dài. Vấn đề là team nhầm "branch đã merge" với "feature đã release" — và để Git trở thành staging environment.**
 
 | | |
 |---|---|
-| **Vấn&nbsp;đề** | Feature branch tích đống vì team đồng nhất "branch đã merge" với "feature đã release" — nên code chưa xong nằm trong Git thay vì được integrate. |
-| **Tại&nbsp;sao** | Bản năng bảo vệ main khỏi code chưa hoàn thiện là đúng. Phương pháp — giữ branch sống lâu — là sai. Nó trì hoãn integration, không phải release. |
-| **Mục&nbsp;tiêu** | Integrate liên tục vào một branch duy nhất. Kiểm soát riêng khi nào người dùng thấy feature. |
+| **Vấn đề** | Branch sống lâu là failure phối hợp: tích đống vì team đồng nhất integration với release. Code chưa xong nằm trong Git thay vì được integrate. |
+| **Tại sao** | Bản năng bảo vệ main khỏi code chưa hoàn thiện là đúng. Phương pháp — giữ branch sống lâu — là sai. Nó trì hoãn integration, không phải release. |
+| **Mục tiêu** | Integrate liên tục vào một branch duy nhất. Kiểm soát riêng khi nào người dùng thấy feature. |
 
-## Điều này mở ra gì
+## Thực tế vỡ ra như thế nào
 
-Branch ngắn nghĩa là rủi ro integration lộ ra ngay khi merge — lúc thay đổi còn nhỏ và tác giả vẫn còn nhớ context — thay vì khi release, khi đã quá muộn để xử lý gọn. Staging luôn phản ánh code mới nhất đã được integrate. Production chỉ thay đổi khi ai đó chủ động promote build. Product kiểm soát những gì người dùng thấy mà không cản engineering ship.
+Hậu quả có thể đoán trước và cộng hưởng với nhau:
 
-Kết quả: blast radius nhỏ hơn mỗi merge, không cần phối hợp giữa các branch, và quyết định release thuộc về product chứ không bị branch state chi phối.
+**Review fatigue.** Diff 800 dòng bị rubber-stamp. Không ai có bandwidth để đọc kỹ 800 dòng trong một lần ngồi. Reviewer kiệt sức trước khi đọc xong.
 
-## Workflow
+**Conflict debt.** Mỗi ngày branch mở, nó tụt lại xa hơn `develop`. Khi cuối cùng merge, ai đó — thường là tác giả — mất cả ngày hòa giải. Branch càng dài, conflict càng nhiều.
 
-Một source of truth duy nhất: `develop`.
+**Mất tín hiệu.** Test pass trên branch có thể không pass sau khi merge. Tác giả phải debug thứ gì đó vỡ vì merge của team khác từ ba tuần trước, lúc đó context đã mất hết.
 
-Engineer tạo branch từ `develop`, làm trong branch ngắn — tính theo giờ, không phải tuần — rồi merge lại qua PR. Mỗi merge kích hoạt pipeline: tự động tag commit, phát hiện app nào thay đổi, build chỉ những app đó, deploy lên staging tự động. Staging luôn đồng bộ với `develop`. Chỉ những gì thay đổi mới được rebuild.
+**Overhead phối hợp.** "Thứ tự merge là gì?" "Branch của bạn phụ thuộc vào branch của tôi không?" "Để tôi deploy xong rồi bạn mới merge." Những cuộc trò chuyện này là overhead thuần túy — team đang dùng thời gian engineering để quản lý Git state thay vì ship.
+
+## Sự tách biệt thực sự quan trọng
+
+Trunk-based development không phải là chiến lược branching Git. Đây là quyết định tổ chức: **engineering sở hữu integration; product sở hữu release.**
+
+Engineer merge liên tục vào `develop`. Mỗi merge hoàn chỉnh — đã test, đã review, đã integrate. Người dùng có thấy feature hay không phụ thuộc vào flag, không phải branch state.
+
+Product quyết định khi nào bật flag. Quyết định đó độc lập với engineering pipeline. Feature có thể được merge và integrate nhiều tuần trước khi product thấy thời điểm phù hợp. Marketing chuẩn bị, legal review, support chuẩn bị — không cái nào block engineering tiếp tục integrate.
 
 ```mermaid
 flowchart TD
-    subgraph auto["Tự động — mỗi merge vào develop"]
-        direction LR
-        PR[PR merged] --> Tag[tag commit]
-        Tag --> Diff[phát hiện app thay đổi]
-        Diff --> Build[build app bị ảnh hưởng]
-        Build --> Staging[auto-deploy lên staging]
-    end
+    A[Engineering merge vào develop] --> B[Flag tắt — người dùng thấy behavior cũ]
+    B -->|product bật flag| C[Flag bật — người dùng thấy behavior mới]
 
-    subgraph manual["Thủ công — release production"]
-        direction LR
-        Pick[chọn tag] --> Gate[validate tag ≥ prod hiện tại]
-        Gate --> Prod[deploy lên production]
-        Prod --> HB[tự động tạo hotfix branch]
-    end
-
-    auto --> manual
+    style B fill:#1e3a5f,color:#fff
+    style C fill:#14532d,color:#fff
 ```
 
-Production chỉ thay đổi khi ai đó chủ động chọn tag và kích hoạt deployment workflow. Timestamp gate reject bất kỳ tag nào cũ hơn version đang chạy — rollback vô ý thất bại trước khi chạm tới infrastructure.
+Không có sự tách biệt này, mỗi merge là release tiềm năng — nghĩa là engineer không thể merge cho đến khi feature hoàn thiện, branch tiếp tục sống dài, và vòng lặp tiếp tục.
 
-Không ai tích lũy hai tuần code riêng rồi đổ 800 dòng lên đồng nghiệp.
+## Objection thường giết chết trunk-based
 
-## Thách thức: code chưa xong
+"Nếu feature chưa xong thì sao?"
 
-Objection thường giết chết trunk-based: "Nếu feature chưa xong thì sao?"
+Objection này giả định code chưa hoàn thiện phải nằm ngoài `develop` để bảo vệ người dùng. Đúng. Nhưng sự bảo vệ đến từ feature flag, không phải branch isolation.
 
-Thực tế khi giữ branch sống: nó tụt lại sau `develop`. Khi cuối cùng merge, có conflict. Test vốn pass trên branch giờ không pass nữa. Engineer phải debug thứ gì đó vỡ vì merge của người khác ba tuần trước.
+**Feature flag giải quyết vấn đề này mà không cần branch.** Giấu code chưa xong sau flag trong code, không phải trong Git. Khi flag tắt, người dùng thấy behavior cũ. Khi bật, họ thấy behavior mới. Engineer tiếp tục merge; product kiểm soát khi nào bật.
 
-**Feature flag giải quyết vấn đề này mà không cần branch.** Giấu code chưa xong sau flag trong code, không phải trong Git. Khi flag tắt, người dùng thấy behavior cũ. Khi bật, họ thấy behavior mới. Engineer tiếp tục merge; product kiểm soát khi nào bật flag.
+Counter-objection thường gặp: "Phức tạp hơn." Đúng — một câu `if` mỗi feature được guard. Branch cũng phức tạp: conflict, phối hợp merge, review overload, tín hiệu integration bị trễ. Câu hỏi là loại phức tạp nào dễ lý luận và dọn dẹp hơn. Flag với owner rõ ràng dễ dọn hơn nhiều so với branch đã tụt lại sáu tuần sau `develop`.
 
-Engineering tập trung vào integration. Product kiểm soát release. Đây thực sự là hai công việc khác nhau.
+## Manager cần theo dõi gì
 
-## Hotfix
+**Branch age.** Lấy danh sách PR đang mở, sort theo tuổi. Cái nào cũ hơn ba ngày mà không có lý do rõ ràng là tín hiệu phối hợp. Hỏi tại sao chưa merge. Câu trả lời cho thấy team đã internalize sự tách biệt integration/release hay chưa.
 
-Mỗi lần deploy production tự động tạo hotfix branch trỏ đúng vào commit đã deploy. Khi incident xảy ra, điểm vào đã sẵn sàng.
+**Review turnaround.** Diff lớn là triệu chứng; review chậm là tín hiệu. Nếu thời gian review trung bình tăng, branch có thể đang dài hơn trước khi được mở.
 
-**Fix luôn bắt đầu từ `develop`, không phải hotfix branch.** Merge vào `develop` trước — pipeline deploy lên staging, team verify ở đó. Sau khi xác nhận, cherry-pick vào hotfix branch và deploy production thủ công. Timestamp gate vẫn áp dụng.
+**Flag accumulation.** Feature flag có vòng đời. Flag cũ không được dọn lấp đầy codebase bằng code chết — theo nghĩa đen, bên trong code. Flag đã ship và đã bật 100% từ sáu tháng trước mà không có cleanup ticket là flag debt. Theo dõi số lượng flag và yêu cầu cleanup là một phần của định nghĩa "feature hoàn thành".
 
-Thứ tự không được đảo ngược dù áp lực lớn đến đâu: `develop` → verify trên staging → hotfix branch → production. Nếu team có môi trường preprod, nó có hotfix branch riêng — cherry-pick vào `hotfixes/preprod/[tag]` trước, auto-deploy lên preprod, verify ở đó, rồi cherry-pick vào `hotfixes/prod/[tag]` để trigger production thủ công.
+**CI reliability.** Trunk-based development chỉ hoạt động nếu merge nhanh và build đáng tin. Test suite flaky chạy 40 phút là vấn đề blocking — đây là cổng mỗi engineer phải đi qua nhiều lần mỗi ngày. Một test flaky khiến phải retry sẽ tạo áp lực để skip CI, và khi đó toàn bộ model sụp đổ. CI health là đầu tư infrastructure, không phải vanity của engineering.
 
-```mermaid
-sequenceDiagram
-    box Branches
-    participant DB as develop
-    participant HB as hotfixes/prod/[tag]
-    end
-    box Environments
-    participant SE as staging
-    participant PE as production
-    end
+**Hotfix discipline.** Dưới áp lực incident, team quay về bản năng. Bản năng sai: fix production trước, rồi (có thể) backport. Thứ tự đúng là `develop` trước, verify trên staging, rồi cherry-pick lên production. Nếu team skip `develop`, fix chỉ tồn tại trong production và mất khi release tiếp theo ghi đè. Theo dõi điều này trong postmortem.
 
-    Note over DB,PE: release thông thường
-    DB->>SE: merge → tag → auto-deploy staging
-    SE-->>PE: promote tag lên production thủ công
-    PE->>HB: tự động tạo hotfixes/prod/[tag]
+## Thay đổi văn hóa
 
-    Note over PE: phát hiện incident
-    DB->>DB: merge fix vào develop
-    DB->>SE: auto-deploy lên staging
-    SE->>SE: verify fix
-    DB->>HB: cherry-pick commit
-    HB->>HB: push → build only, no auto-deploy
-    HB-->>PE: deploy tag mới lên production thủ công
-    PE->>HB: tự động tạo hotfixes/prod/[new-tag]
-```
+Phần khó nhất không phải tooling — mà là thuyết phục engineer rằng merge code chưa hoàn thiện không phải là thiếu trách nhiệm. Với hầu hết team, "đừng merge cho đến khi xong" là norm ăn sâu. Có vẻ như kỷ luật. Trong model trunk-based, đó chính là failure mode.
 
-`develop` vẫn là nguồn chính xác. Fix tồn tại trong `develop` trước khi đến production — không có rủi ro hotfix chỉ sống trong production rồi bị mất khi release tiếp theo ghi đè.
+Cách reframe thường hoạt động: **merge là integration, không phải release.** Review PR là về correctness và safety, không phải về việc feature đã sẵn sàng cho người dùng chưa. Đó là hai cuộc trò chuyện khác nhau với người tham gia khác nhau.
 
-## Điều thay đổi suy nghĩ của tôi
+Sự thay đổi này thường cần được chứng minh với một feature duy nhất trước khi trở thành thực hành. Chọn thứ gì đó có ranh giới rõ ràng, đặt sau flag, merge tăng dần trong một sprint, bật flag khi product sẵn sàng. Team thấy conflict debt biến mất và review size thu nhỏ. Trải nghiệm đó thuyết phục hơn bất kỳ tài liệu quy trình nào.
 
-Trước đây tôi dùng release branch. Workflow trông có cấu trúc: `release/2.4` tách từ `develop` tại một milestone, được stabilize, rồi deploy. Rõ ràng và dễ audit.
+## Điều tôi từ bỏ
 
-Thực tế là hai codebase chạy song song. Fix trên production vào `release/2.4`. Nếu ai đó nhớ, nó cũng vào `develop`. Bug xuất hiện trên production vốn đã được fix trong `develop` nhưng không bao giờ backport. Release branch không bảo vệ production — nó che giấu integration debt và phân tán fix ra hai chỗ.
+Trước đây tôi dùng release branch. Workflow trông có cấu trúc: `release/2.4` tách từ `develop` tại milestone, được stabilize, được deploy. Rõ ràng và dễ audit.
 
-Tag trên `develop` làm cùng việc đó — artifact ổn định, bất biến để promote lên production — mà không cần codebase song song.
+Thực tế là hai codebase chạy song song. Fix trên production vào release branch. Nếu ai đó nhớ, nó cũng vào `develop`. Bug xuất hiện trên production vốn đã được fix trong `develop` nhưng không bao giờ backport. Release branch không bảo vệ production — nó che giấu integration debt và tạo hai fix surface phân kỳ dưới áp lực.
 
-## Chi phí
+Tag trên `develop` làm cùng việc — artifact ổn định, bất biến để promote — mà không cần codebase song song. Một source of truth. Đường hotfix rõ ràng: fix trong `develop` trước, verify, cherry-pick vào tag, deploy.
+
+## Trade-off
 
 | Lợi ích | Chi phí | Failure mode |
 |---|---|---|
-| Rủi ro integration lộ khi merge, không phải release | Mỗi merge phải pass CI | Test flaky làm chậm mọi người; team bắt đầu bỏ qua build đỏ |
-| Staging luôn phản ánh `develop` mới nhất | Feature flag tích lũy vô thời hạn | Flag cũ không bao giờ được dọn; codebase đầy code chết không ai xóa |
-| Promote production là lựa chọn tag có chủ đích | Engineer cần kỷ luật với flag | Code chưa xong ship tới người dùng; "deploy bằng release" trở lại |
-| Đường hotfix tách biệt khỏi công việc đang làm | Fix phải vào `develop` trước khi chạm production | Dưới áp lực, thứ tự đảo ngược — fix vào production trước, `develop` không bao giờ có |
+| Rủi ro integration lộ khi merge, không phải release | Mỗi merge phải pass CI | Test flaky làm chậm mọi người; team bỏ qua build đỏ |
+| Product kiểm soát release độc lập với engineering pipeline | Feature flag tích lũy | Flag cũ không được dọn; codebase đầy điều kiện chết |
+| Staging luôn phản ánh code mới nhất đã integrate | Engineer cần kỷ luật với flag | Code chưa xong ship tới người dùng |
+| Đường hotfix tách biệt khỏi công việc đang làm | Fix phải vào `develop` trước production | Dưới áp lực, thứ tự đảo ngược — fix vào production trước, `develop` không bao giờ có |
 
-Đầu tư lớn nhất không phải infrastructure — mà là kỷ luật CI. Trunk-based development chỉ hoạt động nếu merge vào `develop` nhanh và build đáng tin. Test suite flaky chạy 40 phút tệ hơn bất cứ đâu khác ở đây, vì nó là cổng mỗi engineer phải đi qua nhiều lần mỗi ngày.
-
-Không có CI đáng tin, mỗi merge là canh bạc. Có CI tốt, ship trở thành việc thường ngày.
+Đầu tư lớn nhất không phải infrastructure. Là kỷ luật CI và norm về merge nhỏ, thường xuyên. Cả hai cần sự chú ý liên tục từ manager, không chỉ một lần rollout ban đầu.
 
 ## Một quyết định cho ngày mai
 
-Tìm branch cũ nhất đang mở trong repo. Nếu nó tồn tại hơn ba ngày, hỏi tại sao chưa merge. Câu trả lời thường là "feature chưa xong". Branch đó sẽ tốn của ai đó một ngày giải quyết conflict khi cuối cùng được merge.
+Tìm branch cũ nhất đang mở trong repo. Nếu nó tồn tại hơn ba ngày, hỏi tại sao chưa merge. Câu trả lời thường là "feature chưa xong".
 
-Chia nó thành phần nhỏ nhất có thể merge an toàn. Giấu phần chưa xong sau flag. Merge những gì đã sẵn sàng ngay hôm nay.
+Branch đó sẽ tốn của ai đó một ngày giải quyết conflict khi cuối cùng merge. Chia nó thành phần nhỏ nhất có thể merge an toàn. Giấu phần chưa xong sau flag. Merge những gì sẵn sàng ngay hôm nay.
 
 Một thói quen đó — merge những gì sẵn sàng, flag những gì chưa xong — là toàn bộ quy trình ở dạng thu nhỏ.
+
+---
+
+Nếu muốn đi sâu hơn vào cơ chế — CI pipeline, timestamp gate, kỷ luật feature flag, và hotfix cherry-pick flow — [bài kỹ thuật có phần implementation](/technical/trunk-based-development/).
