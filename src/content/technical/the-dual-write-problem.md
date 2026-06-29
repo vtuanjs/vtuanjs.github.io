@@ -10,7 +10,7 @@ vi_url: /vi/technical/van-de-dual-write/
 
 > **Part 1 of 2.** Build the outbox by hand. In [Part 2](/technical/streaming-the-outbox-with-cdc/), change-data-capture replaces the relay.
 
-The first time it bit me, the symptom was a customer email that never arrived. The order was in the database — paid, confirmed. But the "order placed" event was never published, so the service that sends the email never woke up. No exception, no failed request, no line in any log. The code had done exactly what it was told.
+The symptom was a customer email that never arrived. The order was in the database, paid and confirmed. But the "order placed" event was never published, so the email service never ran. No exception, no failed request, no line in any log. The code did exactly what it was told.
 
 | | |
 |---|---|
@@ -30,7 +30,7 @@ sequenceDiagram
     Note over App,Broker: order exists, event lost
 ```
 
-Here is what the code was told to do — and why it's a trap waiting to spring:
+Here is what the code was told to do:
 
 ```go
 tx, _ := db.Begin()
@@ -60,7 +60,7 @@ flowchart LR
 What you actually want is one transaction spanning the database *and* the broker — commit both or neither. That's distributed atomicity, and the textbook tool is two-phase commit (2PC): a coordinator asks every participant to "prepare," and only if all vote yes does it tell them to commit. It's worth being precise about why I don't reach for it here:
 
 - **The broker usually can't play.** Kafka transactions are for atomic writes *within* Kafka, not a cross-system prepare/commit handshake with your Postgres. The two simply don't share a transaction manager.
-- **It couples your availability to your least reliable participant.** Under 2PC your write path is only as available as the slowest, flakiest member. If the broker is having a bad afternoon, your *database writes* now block on it. You've taken your most reliable system and taught it to fail whenever your least reliable one does.
+- **It couples your availability to your least reliable participant.** Under 2PC your write path is only as available as the slowest, flakiest member. If the broker is down, your *database writes* now block on it. You've taken your most reliable system and made it fail whenever your least reliable one does.
 - **The coordinator is a new failure mode you now operate.** A coordinator that dies after "prepare" but before "commit" leaves participants holding locks, waiting. Now you own a coordinator, its persistence, and its recovery story.
 
 So the real problem isn't "how do I do 2PC well." It's sharper than that: **how do I get atomicity using only the one transactional system I already trust — the database — and stop pretending the broker can participate at all.**

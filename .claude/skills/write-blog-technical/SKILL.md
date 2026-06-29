@@ -58,6 +58,7 @@ Rules:
 - **Front-load the takeaway.** Lead each section with the conclusion in bold, then expand. Progressive disclosure, not omission.
 - **Length follows coverage, not a cap.** Write as much as it takes to fully exhaust the *why*. Cut padding; never cut reasoning.
 - **Tight prose.** Every sentence earns its place. No restating the same point twice for rhythm. If a clause can go without losing an idea, it goes.
+- **Default to the shortest version, then cut again.** The first draft is always too long. Re-read each paragraph and delete every word that earns nothing — but never cut reasoning. This trims length (decoration, wind-up, restated points), not depth.
 
 ## Snippet discipline
 

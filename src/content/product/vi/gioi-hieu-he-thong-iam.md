@@ -22,7 +22,7 @@ Một khách hàng không vào được tính năng họ đang trả tiền. Sup
 
 ## Tại sao điều này quan trọng
 
-Khi các phần khác nhau của product không đồng thuận về một khách hàng, khách hàng cảm nhận được — bị khóa khỏi tính năng họ đang trả tiền, bị tính sai giá, hoặc được onboard vào trạng thái lỗi mà họ không giải thích được và support cũng không sửa được. Nguyên nhân luôn giống nhau: hai nơi đều lưu "khách hàng này được làm gì," và chúng đã lệch nhau.
+Khi các phần của product không đồng thuận về khách hàng, khách hàng cảm nhận được — bị khóa khỏi tính năng đang trả tiền, bị tính sai giá, hoặc onboard vào trạng thái lỗi mà họ không giải thích được và support không sửa được. Nguyên nhân luôn giống nhau: hai nơi cùng lưu "khách hàng này được làm gì," và chúng đã lệch nhau.
 
 Chi phí kinh doanh tăng nhanh. Support ticket tăng. Engineering mất thời gian vào bug không có owner rõ ràng. Ra mắt tính năng mới trở thành công việc phối hợp giữa các team thay vì bật một switch. Onboard khách hàng mới cần N thao tác riêng lẻ — bỏ sót một cái là có thứ hỏng.
 
@@ -32,7 +32,7 @@ Tập trung hóa các quyết định này không thêm complexity. Nó loại b
 
 ### Organization — một customer record, mọi thứ theo sau
 
-Khi khách hàng mới đăng ký, mọi phần của product cần biết họ tồn tại: billing, support, access control, analytics. Không có một nơi duy nhất sở hữu điều này, mỗi team tự provision bản sao riêng — và nếu bất kỳ bước nào thất bại, khách hàng rơi vào trạng thái lỗi khó chẩn đoán và càng khó sửa hơn.
+Khi khách hàng mới đăng ký, mọi phần của product cần biết họ tồn tại: billing, support, access control, analytics. Không có nơi duy nhất sở hữu, mỗi team tự provision bản sao riêng — bất kỳ bước nào thất bại là khách hàng rơi vào trạng thái lỗi khó chẩn đoán và khó sửa.
 
 **Lợi ích:** Một thao tác tạo khách hàng. Mọi hệ thống khác tự động theo sau. Phần 2.
 

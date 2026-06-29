@@ -10,7 +10,7 @@ en_url: /technical/streaming-the-outbox-with-cdc/
 
 > **Phần 2 của 2.** [Phần 1](/vi/technical/van-de-dual-write/) đã dựng một outbox với polling relay. Giờ ta xoá relay.
 
-Polling relay ở Phần 1 chạy được, nhưng có một điểm gợn tôi không bỏ qua được. Tôi hỏi database "có gì mới không?" theo một timer — trong khi database đã biết câu trả lời ngay lúc hàng đó commit. Mỗi commit được ghi nối vào **write-ahead log**: một bản ghi có thứ tự, bền vững của mọi thay đổi, đúng cái log Postgres dùng cho replication và crash recovery. Relay của tôi đang tự dựng lại — chậm hơn và thô hơn — một cái log database đã giữ sẵn một cách hoàn hảo.
+Polling relay ở Phần 1 chạy được, nhưng nó làm việc thừa. Tôi hỏi database "có gì mới không?" theo timer, trong khi database đã biết câu trả lời ngay lúc hàng đó commit. Mỗi commit được ghi nối vào **write-ahead log**: bản ghi có thứ tự, bền vững của mọi thay đổi, đúng cái log Postgres dùng cho replication và crash recovery. Relay của tôi tự dựng lại — chậm hơn, thô hơn — cái log database đã giữ sẵn hoàn hảo.
 
 | | |
 |---|---|
@@ -34,7 +34,7 @@ Change-data-capture đọc thẳng cái log đó. Debezium kết nối như mộ
 
 ## Đừng trỏ CDC vào bảng nghiệp vụ
 
-Cám dỗ đầu tiên là xoá luôn bảng outbox. Giữ làm gì? Cứ stream thay đổi thẳng từ bảng `orders` — thay đổi của hàng *chính là* event. Đây cùng loại sai lầm với "publish bên trong transaction" ở Phần 1: gộp hai thứ trông giống nhau nhưng thực ra khác nhau.
+Cám dỗ đầu tiên là xoá luôn bảng outbox. Giữ làm gì? Cứ stream thay đổi thẳng từ bảng `orders` — thay đổi của hàng *chính là* event. Đây cùng loại sai lầm với "publish bên trong transaction" ở Phần 1: gộp hai thứ trông giống nhau nhưng khác nhau.
 
 ```mermaid
 flowchart TD
@@ -46,7 +46,7 @@ flowchart TD
     style X3 fill:#7f1d1d,color:#fff
 ```
 
-Raw CDC từ một bảng nghiệp vụ trung thực tới mức có hại — nó publish bất cứ gì xảy ra với hàng đó, không hề biết ý bạn là gì:
+Raw CDC từ bảng nghiệp vụ publish bất cứ gì xảy ra với hàng đó, không biết ý bạn là gì:
 
 - **Schema coupling.** Mọi consumer giờ phụ thuộc vào layout vật lý của bảng. Đổi tên một column, tách một bảng, thêm một NOT NULL — bạn làm hỏng mọi downstream service cùng lúc. Schema lưu trữ của bạn chưa bao giờ được thiết kế để làm public API, và ngay khi nó trở thành public API thì bạn không refactor được nữa.
 - **Event bạn không hề định phát ra.** Một job chạy đêm chạm vào `updated_at`, một lần backfill dữ liệu, một sửa tay trong psql — tất cả stream ra thành "event". Consumer không phân biệt được một thay đổi trạng thái thật với một lần ghi vô tình.

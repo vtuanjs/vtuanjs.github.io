@@ -10,7 +10,7 @@ en_url: /technical/the-dual-write-problem/
 
 > **Phần 1 của 2.** Tự tay dựng outbox. Ở [Phần 2](/vi/technical/stream-outbox-bang-cdc/), change-data-capture sẽ thay thế cho relay.
 
-Lần đầu tôi dính phải nó, triệu chứng là một email khách hàng không bao giờ tới. Đơn hàng đã nằm trong database — đã thanh toán, đã xác nhận. Nhưng sự kiện "order placed" chưa bao giờ được publish, nên service gửi email không bao giờ chạy. Không exception, không request thất bại, không một dòng nào trong log. Code chạy đúng những gì nó được lập trình.
+Triệu chứng là email khách hàng không tới. Đơn hàng đã nằm trong database — đã thanh toán, xác nhận. Nhưng event "order placed" chưa được publish, nên service gửi email không chạy. Không exception, không request lỗi, không dòng nào trong log. Code chạy đúng những gì được lập trình.
 
 | | |
 |---|---|
@@ -30,7 +30,7 @@ sequenceDiagram
     Note over App,Broker: order exists, event lost
 ```
 
-Đây là đoạn code làm đúng yêu cầu — và vì sao nó là cái bẫy chực chờ sập:
+Đây là đoạn code làm đúng yêu cầu:
 
 ```go
 tx, _ := db.Begin()
@@ -39,11 +39,11 @@ tx.Commit()                          // succeeds
 broker.Publish("orders.created", e)  // network blips, broker is mid-restart — lost
 ```
 
-Commit và publish là hai thao tác độc lập trên hai hệ thống độc lập. Phần lớn thời gian cả hai đều thành công và bạn chẳng bao giờ bận tâm. Nhưng "phần lớn thời gian" lại chính là cái tính chất khiến nó nguy hiểm: nó vượt qua mọi test, lên production, rồi vài tuần sau mới hỏng, đúng lúc broker restart hay mạng chập chờn — biểu hiện là dữ liệu vẫn còn đó mà không có sự kiện nào công bố nó. Loại bug tệ nhất là loại không kèm theo lỗi nào cả.
+Commit và publish là hai thao tác độc lập trên hai hệ thống độc lập. Phần lớn thời gian cả hai đều thành công và bạn chẳng bao giờ bận tâm. Nhưng "phần lớn thời gian" chính là tính chất khiến nó nguy hiểm: nó vượt qua mọi test, lên production, vài tuần sau mới hỏng đúng lúc broker restart hay mạng chập chờn — dữ liệu tồn tại nhưng không event nào công bố. Bug khó phát hiện nhất là bug không kèm lỗi.
 
 ## Cách sửa ngây thơ không hiệu quả
 
-Bản năng mách bảo ta chuyển publish vào *bên trong* transaction để chúng "cùng thành công." Nghe có vẻ an toàn hơn. Không hề.
+Bản năng mách ta chuyển publish vào *bên trong* transaction để chúng "cùng thành công." Nghe an toàn hơn. Không hề.
 
 ```mermaid
 flowchart LR
@@ -87,7 +87,7 @@ tx.Exec("INSERT INTO outbox (topic, payload) VALUES ($1, $2)", "orders.created",
 tx.Commit() // both rows land, or neither does
 ```
 
-Toàn bộ mẹo nằm trong đúng một `Commit()` đó. Sự kiện và dữ liệu giờ nằm chung dưới **một** thao tác atomic: nếu đơn hàng được lưu, hàng sự kiện tồn tại; nếu transaction rollback, sự kiện chưa bao giờ được ghi. Không có khoảng trống nào mà cái này đúng còn cái kia sai. Relay sau đó có thể crash, được redeploy, chạy trễ — và không mất gì, bởi các hàng chưa publish cứ nằm yên trong bảng cho tới khi có thứ gì đó rút chúng ra. Bạn vừa biến một vấn đề hai-hệ-thống không giải được thành một thao tác đọc một-bảng bình thường, mà đọc bảng là thứ database cực kỳ giỏi.
+Toàn bộ mẹo nằm trong đúng một `Commit()` đó. Event và dữ liệu giờ nằm chung dưới **một** thao tác atomic: đơn hàng lưu thì hàng event tồn tại; transaction rollback thì event chưa từng được ghi. Không có khoảng trống nào mà cái này đúng còn cái kia sai. Relay sau đó có thể crash, redeploy, chạy trễ — không mất gì, vì các hàng chưa publish nằm yên trong bảng tới khi có thứ gì rút ra. Bạn biến một vấn đề hai-hệ-thống không giải được thành thao tác đọc một bảng — thứ database cực giỏi.
 
 ## Cái giá phải trả
 

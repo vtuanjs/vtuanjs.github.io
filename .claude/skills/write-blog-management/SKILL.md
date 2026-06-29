@@ -72,6 +72,7 @@ Rules:
 - **Front-load the takeaway.** Lead each section with the conclusion in bold, then expand.
 - **Tables carry comparison; prose carries reasoning.** A trade-off or option comparison becomes a table. The reasoning behind the table goes in prose below it.
 - **Tight prose.** Every sentence earns its place. No restating the same point twice for rhythm.
+- **Default to the shortest version, then cut again.** The first draft is always too long. Re-read each paragraph and delete every word that earns nothing — decoration, wind-up, restated points — but never cut the reasoning that proves the call.
 
 ## The rules that apply to every post
 

@@ -21,7 +21,8 @@ The problem is almost never vocabulary. It's **translating English idioms and se
   - "the service never woke up" → ❌ "service chẳng bao giờ thức dậy" → ✅ "service không bao giờ chạy"
   - "you now own a coordinator" → ❌ "bạn sở hữu một coordinator" → ✅ "bạn phải tự vận hành một coordinator"
 - **English prepositions translated as `dưới`/`trên`.** "fails under a restart" → ❌ "thất bại dưới một lần restart" → ✅ "hỏng khi restart". Vietnamese doesn't stack abstract prepositions the way English does.
-- **Passive-voice pile-ups.** English loves the passive; Vietnamese prefers an active subject. "events are governed by one operation" → ❌ "sự kiện được cai quản bởi một thao tác" → ✅ "sự kiện nằm chung trong một thao tác".
+- **The `một` article calque — the most common tell.** English needs "a/an" before every singular noun; Vietnamese doesn't. Translating each one as "một" makes the prose read instantly like a machine. Drop it unless the count *one* genuinely matters. "a new organization is created" → ❌ "một organization mới được tạo" → ✅ "organization mới được tạo". "publishes a single event" → keep "một" (one is the point) → "publish đúng một event". "support gets a ticket" → ❌ "support nhận một ticket" → ✅ "support nhận ticket". When in doubt, read it without "một" — if the meaning holds, leave it out.
+- **Passive-voice pile-ups.** English loves the passive; Vietnamese prefers an active subject. "events are governed by one operation" → ❌ "sự kiện được cai quản bởi một thao tác" → ✅ "sự kiện nằm chung trong một thao tác". Watch for repeated `được + verb` ("được tạo", "được thiết lập") stacking up — rephrase to an active subject or an event verb: "an org is created" → ✅ "org mới ra đời" / "org vừa tạo xong" rather than "một org được tạo" every time.
 - **Stiff connectors.** "Furthermore / Moreover / In addition" → don't translate as "Hơn nữa / Thêm vào đó" reflexively; often a Vietnamese writer just starts the next sentence, or uses "Và", "Ngoài ra" sparingly.
 - **Over-formal register.** Avoid bookish words where a working engineer would use a plain one. Write the way people talk in a code review, not the way a textbook is printed.
 
@@ -40,10 +41,16 @@ The rule of thumb: **if a Vietnamese engineer would say the English word out lou
 
 ## Voice and register
 
-The Vietnamese version is **drier and more technical than the English.** Tuan's English leans on imagery and emotion to carry a point; in Vietnamese, the technical substance carries it. Cut the decoration, keep the engineering.
+The Vietnamese version is **drier, shorter, and more technical than the English.** Tuan's English leans on imagery and emotion to carry a point; in Vietnamese, the technical substance carries it. Cut the decoration, keep the engineering. **Khô nhưng ngắn gọn, xúc tích, không lan man** — that is the target, every sentence.
 
+- **Default to the shortest version that keeps the idea — then cut again.** The first Vietnamese draft is almost always too long. After translating a paragraph, re-read it and delete every word that earns nothing: the meaning must survive, nothing else. Tuan will keep asking "ngắn gọn hơn" until it's tight, so do that pass yourself first. Concrete cuts from real edits:
+  - "Có một bước đã bị sót" → "Sót một bước."
+  - "thông báo 'organization created', giống ý tưởng webhook" → "event 'organization created', giống webhook"
+  - "org đã tồn tại trước khi mọi hệ thống bắt kịp — nên đừng thiết kế trải nghiệm lần đầu với giả định mọi thứ sẵn sàng" → "đừng giả định mọi thứ sẵn sàng ngay ở lần đầu"
+  - "chạy sai theo kiểu không ai thấy" → "chạy sai mà không ai thấy"
+  - Prefer the short verb: "thiết lập / cấp phát" → "set", "nhập tay" → "gõ tay" when it reads naturally.
 - **No emotional or decorative words.** Drop the literary flourishes — "sờ sờ ngay đó", "một buổi chiều tồi tệ", "cay đắng", "đáng sợ", dramatic build-ups. State what happens technically. The English "the worst kind of bug is the one with no error" becomes a plain "bug không kèm theo lỗi nào là loại khó phát hiện nhất" — fact, not lament.
-- **No redundancy, no lê thê — người đọc rất lười.** If two sentences make the same point for emphasis (common in the English for rhythm), keep one in Vietnamese. Don't restate, don't wind up before the point, don't pad with "điều quan trọng là", "cần lưu ý rằng", "thực ra thì". The test: if a clause can go without losing an idea, cut it. A reader who hits filler stops before reaching the substance. The Vietnamese is often *shorter* than the English — that's correct, not a loss.
+- **No redundancy, no lê thê — người đọc rất lười.** If two sentences make the same point for emphasis (common in the English for rhythm), keep one in Vietnamese. Don't restate, don't wind up before the point, don't pad with "điều quan trọng là", "cần lưu ý rằng", "thực ra thì", "việc", "một cách". The test: if a clause can go without losing an idea, cut it. A reader who hits filler stops before reaching the substance. The Vietnamese is often *shorter* than the English — that's correct, not a loss.
 - **Lead with the technical claim.** Every paragraph opens with the engineering point, not a wind-up. Translate the *information*, not the mood.
 - **Second person `bạn`, first person `tôi`.** Keep strong takes blunt and declarative; don't soften with "có lẽ", "có thể bạn nên" when the English is declarative — but don't amplify with emotion either. Blunt ≠ dramatic.
 - **Short, active sentences.** Break English run-ons into separate Vietnamese sentences. One idea per sentence.
@@ -92,8 +99,10 @@ The repo links the two language versions through frontmatter and a `vi/` subdire
 - [ ] No literal English idioms — every metaphor reads natively in Vietnamese.
 - [ ] Technical terms of art kept in English; only the connective words are Vietnamese.
 - [ ] No half-translated terms (e.g. no "sự kiện cam-kết" for commit).
-- [ ] Active, short sentences; English run-ons and passive pile-ups broken up.
+- [ ] Active, short sentences; English run-ons and passive pile-ups broken up; no `được + verb` stacking.
+- [ ] No `một` article calque — dropped unless the count *one* actually matters.
 - [ ] No emotional/decorative words, no redundancy, no lê thê — every phrase carries technical information; no wind-up clauses, no point restated twice.
+- [ ] Did the shortest-version pass: re-read each paragraph and cut every word that earns nothing; short verbs preferred (set, gõ tay). Khô, ngắn gọn, xúc tích, không lan man.
 - [ ] Author's ideas, opinions, and their strength are unchanged.
 - [ ] Voice stays blunt, technical, and first-person; no softening, no emoji, no AI filler.
 - [ ] Code blocks and Mermaid structure untouched; URLs preserved.

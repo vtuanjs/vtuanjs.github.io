@@ -10,7 +10,7 @@ vi_url: /vi/technical/stream-outbox-bang-cdc/
 
 > **Part 2 of 2.** [Part 1](/technical/the-dual-write-problem/) built an outbox with a polling relay. Now we delete the relay.
 
-The polling relay from Part 1 works, but it has a smell I couldn't unsmell. I'm asking the database "anything new?" on a timer — when the database already knew the answer the instant the row committed. Every commit is appended to the **write-ahead log**: an ordered, durable record of every change, the same log Postgres uses for replication and crash recovery. My relay was re-deriving, slower and more crudely, a log the database already maintains perfectly.
+The polling relay from Part 1 works, but it does redundant work. I'm asking the database "anything new?" on a timer, when the database already knew the answer the instant the row committed. Every commit is appended to the **write-ahead log**: an ordered, durable record of every change, the same log Postgres uses for replication and crash recovery. My relay was re-deriving, slower and more crudely, a log the database already maintains perfectly.
 
 | | |
 |---|---|
@@ -46,7 +46,7 @@ flowchart TD
     style X3 fill:#7f1d1d,color:#fff
 ```
 
-Raw CDC off a business table is honest to a fault — it publishes whatever happened to the row, with no notion of what you *meant*:
+Raw CDC off a business table publishes whatever happened to the row, with no notion of what you *meant*:
 
 - **Schema coupling.** Every consumer now depends on your physical table layout. Rename a column, split a table, add a NOT NULL, and you've broken every downstream service at once. Your storage schema was never designed to be a public API, and the moment it becomes one you can't refactor it.
 - **Events you never meant to emit.** A nightly job that touches `updated_at`, a data backfill, a manual fix in psql — all of it streams out as "events." Consumers can't tell a real state change from an incidental write.

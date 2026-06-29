@@ -9,6 +9,8 @@ Help Tuan turn a product decision or system into a post that a non-technical sta
 
 The job is not to explain *how* something works. It's to explain *what* it is, *why* it was built this way, what value it creates, and what it costs to ignore.
 
+**The spine of every Product post is two things: the problem faced and the benefit delivered.** Everything else is scaffolding. If a sentence isn't naming a real pain or a concrete gain, it's probably decoration — cut it. Don't be flowery, don't be long: a stakeholder skims, so say the pain, say the payoff, and stop.
+
 ## Audience
 
 Non-technical stakeholders. Write as if explaining to a sharp colleague who has never opened a terminal. No code, no implementation detail, no jargon that needs a glossary. If a term requires a technical background to understand, replace it with a plain-language equivalent.
@@ -51,6 +53,8 @@ Every Product post follows this shape:
 - **No code blocks.** Zero. If a concept needs illustration, use a plain analogy or a concrete business example.
 - **No jargon.** Replace every technical term with plain English: "idempotent" → "safe to repeat," "event-driven" → "one action triggers everything else automatically," "dual-write" → "writing to two places at once."
 - **Mermaid only for high-level business flows** — customer onboarding, feature rollout, provisioning sequence. Never system internals or data models. Node labels in plain English.
+- **No flowery or decorative writing.** Drop scene-setting, dramatic build-ups, and adjectives that add mood but no information ("a terrible afternoon", "painfully slow"). State the pain plainly, then the gain. If removing a phrase loses no problem and no benefit, cut it.
+- **Default to the shortest version, then cut again.** The first draft is always too long. Re-read each paragraph and delete every word that earns nothing. Shorter is the goal, not a loss.
 - **Plain, direct, first-person.** No corporate-neutral prose. Tuan has opinions — state them.
 - **Still opinionated.** The point of view is the product. Don't sand down strong takes into "it depends."
 - **No emoji anywhere.** Not in prose, headings, tables, or diagram labels.
@@ -96,4 +100,5 @@ Save to `src/content/product/` with a kebab-case filename. Always `draft: true` 
 - [ ] Cost of inaction named.
 - [ ] Trade-off section present and honest.
 - [ ] Tight prose: no point restated twice, no clause that can go without losing an idea.
+- [ ] Not flowery, not long: every sentence names a problem or a benefit; decoration cut; did the shortest-version pass.
 - [ ] Frontmatter complete, saved to `src/content/product/`, `draft: true`.
