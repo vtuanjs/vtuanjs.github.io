@@ -49,6 +49,11 @@ export const UI = {
     confirmSwitch: 'This page is not available in Vietnamese yet. Go to the Vietnamese section instead?',
     cancel: 'Cancel',
     ok: 'Continue',
+    search: 'Search',
+    searchPlaceholder: 'Search posts…',
+    searchNoResults: 'No results.',
+    searchResultsFor: (q: string) => `Results for "${q}"`,
+    taggedWith: (tag: string) => `Tagged: ${tag}`,
     home: {
       description: SITE.description,
       langNoteHtml: 'This blog is available in English and Tiếng Việt. Use the <strong>EN / VI</strong> switch in the menu at the top of the page to change language at any time.',
@@ -76,6 +81,11 @@ export const UI = {
     confirmSwitch: 'Trang này chưa có bản tiếng Anh. Chuyển tới mục tiếng Anh tương ứng?',
     cancel: 'Hủy',
     ok: 'Tiếp tục',
+    search: 'Tìm kiếm',
+    searchPlaceholder: 'Tìm bài viết…',
+    searchNoResults: 'Không có kết quả.',
+    searchResultsFor: (q: string) => `Kết quả cho "${q}"`,
+    taggedWith: (tag: string) => `Nhãn: ${tag}`,
     home: {
       description: 'Bài viết kỹ thuật và sản phẩm của Tuan Nguyen, một kỹ sư phần mềm.',
       langNoteHtml: 'This blog is available in English and Tiếng Việt. Use the <strong>EN / VI</strong> switch in the menu at the top of the page to change language at any time.',

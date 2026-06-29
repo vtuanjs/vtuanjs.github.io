@@ -13,8 +13,9 @@ interface Props {
   lang?: Lang;
   vi_url?: string;
   en_url?: string;
+  tags?: string[];
 }
-const { title, description, date, author, image, space, lang = 'en', vi_url, en_url } = Astro.props;
+const { title, description, date, author, image, space, lang = 'en', vi_url, en_url, tags = [] } = Astro.props;
 const info = spaceMeta(space, lang);
 
 // Counterpart in the other language for the header toggle. Fall back to the
@@ -40,6 +41,13 @@ const altUrl =
       <time datetime={date.toISOString()}>{formatDate(date, lang)}</time>
       {author && <> · {author}</>}
     </p>
+    {tags.length > 0 && (
+      <div class="tag-list">
+        {tags.map((tag) => (
+          <a class="tag" href={`${info.path}tags/${tag}/`}>{tag}</a>
+        ))}
+      </div>
+    )}
     <div class="post-content">
       <slot />
     </div>

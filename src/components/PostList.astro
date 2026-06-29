@@ -17,6 +17,13 @@ const base = spaceMeta(space, lang).path;
       <a class="post-list-title" href={`${base}${stripVi(post.id)}/`}>{post.data.title}</a>
       <span class="date">{formatDate(post.data.date, lang)}</span>
       {post.data.description && <p class="excerpt">{post.data.description}</p>}
+      {post.data.tags.length > 0 && (
+        <div class="tag-list">
+          {post.data.tags.map((tag) => (
+            <a class="tag" href={`${base}tags/${tag}/`}>{tag}</a>
+          ))}
+        </div>
+      )}
     </li>
   ))}
 </ul>

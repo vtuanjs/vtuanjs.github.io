@@ -96,6 +96,42 @@ a:hover { text-decoration: underline; }
 }
 .post-content img { max-width: 100%; height: auto; }
 
+/* Tags */
+.tag-list { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+.tag {
+  display: inline-block;
+  font-size: .75rem;
+  font-weight: 500;
+  padding: .2rem .55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.tag:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+
+/* Search */
+.search-form { display: flex; gap: .5rem; margin-bottom: 2rem; }
+.search-input {
+  flex: 1;
+  font: inherit;
+  font-size: 1rem;
+  padding: .55rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-result-space {
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  margin-bottom: .15rem;
+}
+
 /* Footer */
 .site-footer {
   max-width: var(--maxw);

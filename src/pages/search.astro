@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { UI } from '../lib/i18n';
+
+const t = UI.en;
+---
+<BaseLayout title={t.search} description={t.searchPlaceholder}>
+  <h1>{t.search}</h1>
+  <div class="search-form">
+    <input
+      class="search-input"
+      id="search-input"
+      type="search"
+      placeholder={t.searchPlaceholder}
+      autofocus
+      autocomplete="off"
+    />
+  </div>
+  <div id="search-status"></div>
+  <ul class="post-list" id="search-results" hidden></ul>
+</BaseLayout>
+
+<script>
+  interface Entry {
+    title: string;
+    description: string;
+    tags: string[];
+    url: string;
+    space: string;
+    date: string;
+  }
+
+  let index: Entry[] = [];
+
+  const input = document.getElementById('search-input') as HTMLInputElement;
+  const status = document.getElementById('search-status') as HTMLElement;
+  const results = document.getElementById('search-results') as HTMLUListElement;
+
+  async function loadIndex() {
+    const res = await fetch('/search-index.json');
+    index = await res.json();
+  }
+
+  function match(entry: Entry, q: string): boolean {
+    const lower = q.toLowerCase();
+    return (
+      entry.title.toLowerCase().includes(lower) ||
+      entry.description.toLowerCase().includes(lower) ||
+      entry.tags.some((t) => t.toLowerCase().includes(lower))
+    );
+  }
+
+  function render(q: string) {
+    if (!q.trim()) {
+      results.hidden = true;
+      status.textContent = '';
+      return;
+    }
+    const hits = index.filter((e) => match(e, q));
+    status.textContent = hits.length === 0 ? 'No results.' : `Results for "${q}"`;
+    results.innerHTML = hits
+      .map(
+        (e) => `<li class="post-list-item">
+          <div class="search-result-space">${e.space}</div>
+          <a class="post-list-title" href="${e.url}">${e.title}</a>
+          <span class="date">${e.date}</span>
+          ${e.description ? `<p class="excerpt">${e.description}</p>` : ''}
+          ${e.tags.length ? `<div class="tag-list">${e.tags.map((t) => `<a class="tag" href="/${e.space}/tags/${t}/">${t}</a>`).join('')}</div>` : ''}
+        </li>`,
+      )
+      .join('');
+    results.hidden = hits.length === 0;
+  }
+
+  function syncFromUrl() {
+    const q = new URLSearchParams(location.search).get('q') ?? '';
+    input.value = q;
+    render(q);
+  }
+
+  loadIndex().then(syncFromUrl);
+
+  input.addEventListener('input', () => {
+    const q = input.value;
+    const url = new URL(location.href);
+    if (q) url.searchParams.set('q', q);
+    else url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+    render(q);
+  });
+
+  window.addEventListener('popstate', syncFromUrl);
+</script>

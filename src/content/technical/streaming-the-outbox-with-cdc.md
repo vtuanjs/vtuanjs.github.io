@@ -4,6 +4,7 @@ description: "How change-data-capture with Debezium replaces a hand-written outb
 date: 2026-06-28
 author: Tuan Nguyen
 draft: false
+tags: [distributed-systems, cdc, debezium, outbox-pattern]
 vi_url: /vi/technical/stream-outbox-bang-cdc/
 ---
 

@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PostList from '../../../components/PostList.astro';
+import { SPACE_IDS, type SpaceId } from '../../../consts';
+import { spaceMeta } from '../../../lib/i18n';
+import { loadPosts } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  const paths = [];
+  for (const space of SPACE_IDS) {
+    const posts = await loadPosts(space, 'en');
+    const tags = [...new Set(posts.flatMap((p) => p.data.tags))];
+    for (const tag of tags) {
+      paths.push({ params: { space, tag } });
+    }
+  }
+  return paths;
+}
+
+const space = Astro.params.space as SpaceId;
+const tag = Astro.params.tag as string;
+const meta = spaceMeta(space, 'en');
+const allPosts = await loadPosts(space, 'en');
+const posts = allPosts.filter((p) => p.data.tags.includes(tag));
+---
+<BaseLayout title={`${tag} · ${meta.name}`} description={`Posts tagged "${tag}" in ${meta.name}`}>
+  <p class="post-space"><a href={meta.path}>{meta.name}</a></p>
+  <h1>Tagged: {tag}</h1>
+  <PostList posts={posts} space={space} lang="en" />
+</BaseLayout>

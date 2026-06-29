@@ -4,6 +4,7 @@ description: "When you write to your database and a message broker in one operat
 date: 2026-06-28
 author: Tuan Nguyen
 draft: false
+tags: [distributed-systems, kafka, postgres, outbox-pattern]
 vi_url: /vi/technical/van-de-dual-write/
 ---
 

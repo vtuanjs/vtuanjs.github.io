@@ -9,6 +9,7 @@ const postSchema = z.object({
   author: z.string().default('Tuan Nguyen'),
   image: z.string().optional(), // social-card / Open Graph image
   draft: z.boolean().default(false),
+  tags: z.array(z.string()).default([]),
   // Language of this post; the rest of the site treats `en` as the default.
   lang: z.enum(['en', 'vi']).default('en'),
   // Link to the same post in the other language. Accepts a relative path
@@ -28,9 +29,9 @@ const technical = defineCollection({
   schema: postSchema,
 });
 
-const ai = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/ai' }),
+const management = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/management' }),
   schema: postSchema,
 });
 
-export const collections = { product, technical, ai };
+export const collections = { product, technical, management };

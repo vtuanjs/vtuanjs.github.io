@@ -40,6 +40,10 @@ const okLabel = t.ok;
         aria-current={path.startsWith(item.href) ? 'page' : undefined}
       >{item.label}</a>
     ))}
+    <a
+      href={isVi ? '/vi/search/' : '/search/'}
+      aria-current={path === (isVi ? '/vi/search/' : '/search/') ? 'page' : undefined}
+    >{t.search}</a>
     <span class="lang-switch" aria-label="Language">
       {isVi
         ? <a href={enHref} data-confirm={confirmAttr}>EN</a>
