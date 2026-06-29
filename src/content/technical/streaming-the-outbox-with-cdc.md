@@ -10,7 +10,7 @@ vi_url: /vi/technical/stream-outbox-bang-cdc/
 
 > **Part 2 of 2.** [Part 1](/technical/the-dual-write-problem/) built an outbox with a polling relay. Now we delete the relay.
 
-The polling relay from Part 1 works, but it does redundant work. I'm asking the database "anything new?" on a timer, when the database already knew the answer the instant the row committed. Every commit is appended to the **write-ahead log**: an ordered, durable record of every change, the same log Postgres uses for replication and crash recovery. My relay was re-deriving, slower and more crudely, a log the database already maintains perfectly.
+The polling relay from Part 1 works, but it does redundant work. I'm asking the database "anything new?" on a timer, when the database already knew the answer the instant the row committed. Every commit is appended to the **write-ahead log**: an ordered, durable record of every change, the same log Postgres uses for replication and crash recovery. My relay was re-deriving, slower and more crudely, a log the database already maintains.
 
 | | |
 |---|---|
@@ -56,7 +56,7 @@ The lesson: **CDC gives you a reliable transport, but a transport is not a contr
 
 ## Keep the outbox, stream it with the EventRouter
 
-The outbox table stays, with columns chosen so a change-capture tool can route and shape each row into a clean event:
+**The outbox schema is designed for routing, not just storage** — each column maps to a piece of the emitted message, so a change-capture tool can route and shape every row:
 
 ```sql
 CREATE TABLE outbox_events (

@@ -50,6 +50,9 @@ flowchart TB
   R --> B[Billing nghe và set account cho org]
   R --> S[Settings nghe và seed default config cho org]
   R --> AN[Analytics nghe và đăng ký org]
+  B --> D[Org đã set xong ở mọi nơi]
+  S --> D
+  AN --> D
   subgraph Old["Cách cũ: checklist thủ công"]
     direction TB
     H[Tạo org] --> C1[Rồi set billing]

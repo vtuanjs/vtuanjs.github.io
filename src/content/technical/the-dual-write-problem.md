@@ -39,7 +39,7 @@ tx.Commit()                          // succeeds
 broker.Publish("orders.created", e)  // network blips, broker is mid-restart — lost
 ```
 
-The commit and the publish are two independent operations against two independent systems. Most of the time both succeed and you never think about it. But "most of the time" is exactly the property that makes this dangerous: it passes every test, ships to production, and fails weeks later under a broker restart or a network blip — as data that exists with no event to announce it. The worst kind of bug is the one with no error attached.
+The commit and the publish are two independent operations against two independent systems. Most of the time both succeed. But "most of the time" is the property that makes this dangerous: it passes every test, ships to production, and fails weeks later under a broker restart or a network blip. The failure raises no error — committed data, no event, nothing in any log to trace it. You can't alert on an exception that never fires.
 
 ## The naive fix doesn't work
 
@@ -91,7 +91,7 @@ The whole trick lives in that single `Commit()`. The event and the data are now 
 
 ## The trade-off
 
-The outbox isn't free. The bill comes in three parts, and naming them is the point — a pattern you can't critique is one you don't understand yet.
+The outbox isn't free. The cost comes in three parts, and naming them is the point — a pattern whose costs you can't state precisely is one you don't understand yet.
 
 | Cost | Why | What it forces |
 |---|---|---|

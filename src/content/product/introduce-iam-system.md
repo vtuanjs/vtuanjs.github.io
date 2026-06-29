@@ -25,7 +25,7 @@ This is the first post in a series on building that system. This part frames the
 
 When different parts of the product disagree about a customer, the customer feels it — locked out of something they pay for, charged the wrong price, or onboarded into a broken state they can't explain and support can't fix. The cause is always the same: two places each stored "what this customer can do," and they drifted.
 
-The business cost compounds quickly. Support tickets increase. Engineering spends time on bugs that have no single owner. Launching a new feature becomes a coordination effort across teams instead of flipping one switch. Onboarding a new customer requires N separate actions — miss one and something breaks.
+The business cost compounds quickly. Support tickets increase. Engineering spends time on bugs that have no single owner. Launching a new feature becomes a coordination effort across teams instead of flipping one switch. Onboarding a new customer requires a dozen separate actions — miss one and something breaks.
 
 Centralizing these decisions doesn't add complexity. It removes the hidden complexity that was already there, spread across every team's codebase.
 
@@ -33,33 +33,33 @@ Centralizing these decisions doesn't add complexity. It removes the hidden compl
 
 ### Organization — one customer record, everything else follows
 
-When a new customer signs up, every part of the product needs to know they exist: billing, support, access control, analytics. Without a single place that owns this, each team provisions their own copy — and if any one step fails, the customer ends up in a broken state that's hard to diagnose and harder to fix.
+**Benefit:** One action creates the customer. Every other system follows automatically.
 
-**Benefit:** One action creates the customer. Every other system follows automatically. Part 2.
+**Why this exists:** When a new customer signs up, every part of the product needs to know they exist — billing, support, access control, analytics. Without a single place that owns this, each team provisions their own copy, and if any one step fails, the customer ends up in a broken state that's hard to diagnose and harder to fix. Part 2.
 
 ### User — one person, consistent access everywhere
 
-The same person can be an admin in their own account and a read-only viewer in a partner's. Without a system that tracks this cleanly, access bugs appear: someone sees something they shouldn't, or can't do something they should, and there's no clear place to fix it.
+**Benefit:** One authoritative answer to "who is this person and what are they allowed to do" — regardless of which part of the product is asking.
 
-**Benefit:** One authoritative answer to "who is this person and what are they allowed to do" — regardless of which part of the product is asking. Part 3.
+**Why this exists:** The same person can be an admin in their own account and a read-only viewer in a partner's. Without a system that tracks this cleanly, access bugs appear — someone sees something they shouldn't, or can't do something they should, and there's no clear place to fix it. Part 3.
 
 ### Feature flag — test with real customers before rolling out to everyone
 
-New features used to ship to everyone at once, or stay hidden until they were fully ready. Feature flags change that: turn a feature on for one or two customers to watch it work with real usage, then widen the rollout, and turn it off in seconds if something breaks.
+**Benefit:** Faster, safer launches. Pilots with specific customers before committing to everyone. No emergency deploys to turn something off.
 
-**Benefit:** Faster, safer launches. Pilots with specific customers before committing to everyone. No emergency deploys to turn something off. Part 4.
+**Why this exists:** New features used to ship to everyone at once, or stay hidden until they were fully ready. Feature flags change that — turn a feature on for one or two customers to watch it work with real usage, then widen the rollout, and turn it off in seconds if something breaks. Part 4.
 
 ### Config — each customer's settings, in one governed place
 
-Some customers have different pricing, currency, invoice formats, or SLA tiers. Without a governed place for this, those differences end up scattered — in spreadsheets, in code exceptions, in tribal knowledge. They drift, conflict, and cause the wrong behavior for the wrong customer.
+**Benefit:** Each customer's configuration lives in one place the whole product reads consistently, with no guesswork about which version is current.
 
-**Benefit:** Each customer's configuration lives in one place the whole product reads consistently, with no guesswork about which version is current. Part 5.
+**Why this exists:** Some customers have different pricing, currency, invoice formats, or SLA tiers. Without a governed place for this, those differences end up scattered — in spreadsheets, in code exceptions, in tribal knowledge. They drift, conflict, and cause the wrong behavior for the wrong customer. Part 5.
 
 ### Rules — business logic that anyone can change, without a deploy
 
-Shipping fees, discount eligibility, pricing tiers: this logic changes on a business schedule, not an engineering one. When it's in code, every change needs a developer and a deployment. When it's in a free-text box, one typo can break checkout.
+**Benefit:** The right people can change business logic directly — validated, auditable, live without a deploy. Engineering is no longer the bottleneck for every rule change.
 
-**Benefit:** The right people can change business logic directly — validated, auditable, live without a deploy. Engineering is no longer the bottleneck for every rule change. Part 6.
+**Why this exists:** Shipping fees, discount eligibility, pricing tiers — this logic changes on a business schedule, not an engineering one. When it's in code, every change needs a developer and a deployment. When it's in a free-text box, one typo can break checkout. Part 6.
 
 ## The trade-off: one shared system means one shared dependency
 

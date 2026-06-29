@@ -1,7 +1,12 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import type { SpaceId } from '../consts';
-import { spaceMeta, formatDate, type Lang } from '../lib/i18n';
+import { spaceMeta, formatDate, UI, type Lang } from '../lib/i18n';
+
+interface PostLink {
+  title: string;
+  href: string;
+}
 
 interface Props {
   title: string;
@@ -14,9 +19,12 @@ interface Props {
   vi_url?: string;
   en_url?: string;
   tags?: string[];
+  prev?: PostLink;
+  next?: PostLink;
 }
-const { title, description, date, author, image, space, lang = 'en', vi_url, en_url, tags = [] } = Astro.props;
+const { title, description, date, author, image, space, lang = 'en', vi_url, en_url, tags = [], prev, next } = Astro.props;
 const info = spaceMeta(space, lang);
+const t = UI[lang];
 
 // Counterpart in the other language for the header toggle. Fall back to the
 // other language's space index when this post has no translation yet — in
@@ -68,5 +76,21 @@ const altUrl =
         async
       ></script>
     </div>
+    {(prev || next) && (
+      <nav class="post-nav" aria-label="Post navigation">
+        {prev ? (
+          <a class="post-nav-link prev" href={prev.href}>
+            <span class="post-nav-label">{t.prevPost}</span>
+            <span class="post-nav-title">{prev.title}</span>
+          </a>
+        ) : <span />}
+        {next ? (
+          <a class="post-nav-link next" href={next.href}>
+            <span class="post-nav-label">{t.nextPost}</span>
+            <span class="post-nav-title">{next.title}</span>
+          </a>
+        ) : <span />}
+      </nav>
+    )}
   </article>
 </BaseLayout>

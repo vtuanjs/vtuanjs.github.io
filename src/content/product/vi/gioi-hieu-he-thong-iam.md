@@ -24,7 +24,7 @@ Một khách hàng không vào được tính năng họ đang trả tiền. Sup
 
 Khi các phần của product không đồng thuận về khách hàng, khách hàng cảm nhận được — bị khóa khỏi tính năng đang trả tiền, bị tính sai giá, hoặc onboard vào trạng thái lỗi mà họ không giải thích được và support không sửa được. Nguyên nhân luôn giống nhau: hai nơi cùng lưu "khách hàng này được làm gì," và chúng đã lệch nhau.
 
-Chi phí kinh doanh tăng nhanh. Support ticket tăng. Engineering mất thời gian vào bug không có owner rõ ràng. Ra mắt tính năng mới trở thành công việc phối hợp giữa các team thay vì bật một switch. Onboard khách hàng mới cần N thao tác riêng lẻ — bỏ sót một cái là có thứ hỏng.
+Chi phí kinh doanh tăng nhanh. Support ticket tăng. Engineering mất thời gian vào bug không có owner rõ ràng. Ra mắt tính năng mới trở thành công việc phối hợp giữa các team thay vì bật một switch. Onboard khách hàng mới cần cả chục thao tác riêng lẻ — bỏ sót một cái là có thứ hỏng.
 
 Tập trung hóa các quyết định này không thêm complexity. Nó loại bỏ complexity ẩn đã tồn tại, rải rác khắp codebase của từng team.
 
@@ -32,33 +32,33 @@ Tập trung hóa các quyết định này không thêm complexity. Nó loại b
 
 ### Organization — một customer record, mọi thứ theo sau
 
-Khi khách hàng mới đăng ký, mọi phần của product cần biết họ tồn tại: billing, support, access control, analytics. Không có nơi duy nhất sở hữu, mỗi team tự provision bản sao riêng — bất kỳ bước nào thất bại là khách hàng rơi vào trạng thái lỗi khó chẩn đoán và khó sửa.
+**Lợi ích:** Một thao tác tạo khách hàng. Mọi hệ thống khác tự động theo sau.
 
-**Lợi ích:** Một thao tác tạo khách hàng. Mọi hệ thống khác tự động theo sau. Phần 2.
+**Vì sao tồn tại:** Khi khách hàng mới đăng ký, mọi phần của product cần biết họ tồn tại — billing, support, access control, analytics. Không có nơi duy nhất sở hữu, mỗi team tự provision bản sao riêng, bất kỳ bước nào thất bại là khách hàng rơi vào trạng thái lỗi khó chẩn đoán và khó sửa. Phần 2.
 
 ### User — một người, quyền truy cập nhất quán ở mọi nơi
 
-Cùng một người có thể là admin trong tài khoản của họ và là viewer read-only trong tài khoản của đối tác. Không có hệ thống theo dõi điều này rõ ràng, access bug xuất hiện: ai đó thấy thứ không được thấy, hoặc không làm được thứ được phép làm, và không có nơi rõ ràng để sửa.
+**Lợi ích:** Một câu trả lời duy nhất có thẩm quyền cho "người này là ai và được làm gì" — bất kể phần nào của product đang hỏi.
 
-**Lợi ích:** Một câu trả lời duy nhất có thẩm quyền cho "người này là ai và được làm gì" — bất kể phần nào của product đang hỏi. Phần 3.
+**Vì sao tồn tại:** Cùng một người có thể là admin trong tài khoản của họ và là viewer read-only trong tài khoản của đối tác. Không có hệ thống theo dõi điều này rõ ràng, access bug xuất hiện — ai đó thấy thứ không được thấy, hoặc không làm được thứ được phép làm, và không có nơi rõ ràng để sửa. Phần 3.
 
 ### Feature flag — test với khách hàng thực trước khi rollout cho tất cả
 
-Tính năng mới thường ship cho tất cả cùng lúc, hoặc ẩn đi cho đến khi hoàn toàn sẵn sàng. Feature flag thay đổi điều đó: bật tính năng cho một hoặc hai khách hàng để quan sát với real usage, sau đó mở rộng rollout, và tắt trong vài giây nếu có vấn đề.
+**Lợi ích:** Launch nhanh hơn và an toàn hơn. Pilot với khách hàng cụ thể trước khi commit cho tất cả. Không cần emergency deploy để tắt tính năng.
 
-**Lợi ích:** Launch nhanh hơn và an toàn hơn. Pilot với khách hàng cụ thể trước khi commit cho tất cả. Không cần emergency deploy để tắt tính năng. Phần 4.
+**Vì sao tồn tại:** Tính năng mới thường ship cho tất cả cùng lúc, hoặc ẩn đi cho đến khi hoàn toàn sẵn sàng. Feature flag thay đổi điều đó — bật tính năng cho một hoặc hai khách hàng để quan sát với real usage, sau đó mở rộng rollout, và tắt trong vài giây nếu có vấn đề. Phần 4.
 
 ### Config — cấu hình của từng khách hàng, trong một nơi có quản lý
 
-Một số khách hàng có pricing, currency, định dạng invoice, hoặc SLA tier khác nhau. Không có nơi quản lý tập trung, các khác biệt đó bị phân tán — trong spreadsheet, trong code exception, trong tribal knowledge. Chúng lệch nhau, xung đột, và gây ra hành vi sai cho khách hàng sai.
+**Lợi ích:** Config của từng khách hàng nằm ở một nơi mà toàn bộ product đọc nhất quán, không cần đoán version nào đang hiệu lực.
 
-**Lợi ích:** Config của từng khách hàng nằm ở một nơi mà toàn bộ product đọc nhất quán, không cần đoán version nào đang hiệu lực. Phần 5.
+**Vì sao tồn tại:** Một số khách hàng có pricing, currency, định dạng invoice, hoặc SLA tier khác nhau. Không có nơi quản lý tập trung, các khác biệt đó bị phân tán — trong spreadsheet, trong code exception, trong tribal knowledge. Chúng lệch nhau, xung đột, và gây ra hành vi sai cho khách hàng sai. Phần 5.
 
 ### Rules — business logic ai cũng có thể thay đổi, không cần deploy
 
-Phí vận chuyển, điều kiện discount, pricing tier: logic này thay đổi theo lịch kinh doanh, không phải lịch engineering. Khi nó nằm trong code, mỗi thay đổi cần developer và một lần deploy. Khi nó nằm trong free-text box, một typo có thể làm hỏng checkout.
+**Lợi ích:** Người phù hợp có thể thay đổi business logic trực tiếp — có validation, có audit trail, live ngay không cần deploy. Engineering không còn là bottleneck cho mỗi lần thay đổi rule.
 
-**Lợi ích:** Người phù hợp có thể thay đổi business logic trực tiếp — có validation, có audit trail, live ngay không cần deploy. Engineering không còn là bottleneck cho mỗi lần thay đổi rule. Phần 6.
+**Vì sao tồn tại:** Phí vận chuyển, điều kiện discount, pricing tier — logic này thay đổi theo lịch kinh doanh, không phải lịch engineering. Khi nó nằm trong code, mỗi thay đổi cần developer và một lần deploy. Khi nó nằm trong free-text box, một typo có thể làm hỏng checkout. Phần 6.
 
 ## Đánh đổi: một hệ thống chung đồng nghĩa với một điểm phụ thuộc chung
 

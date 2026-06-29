@@ -30,7 +30,7 @@ flowchart LR
     style NEW fill:#064e3b,color:#fff
 ```
 
-Change-data-capture đọc thẳng cái log đó. Debezium kết nối như một logical replication client — đúng interface mà một Postgres read-replica dùng — đọc WAL và phát ra một message cho mỗi thay đổi đã commit. Không còn polling loop, không còn tiến trình relay, và latency giảm từ "poll interval" xuống "WAL stream nhanh tới đâu", tức gần như real time.
+Change-data-capture đọc thẳng cái log đó. Debezium kết nối như một logical replication client — đúng interface mà một Postgres read-replica dùng — đọc WAL và phát ra message cho mỗi thay đổi đã commit. Không còn polling loop, không còn tiến trình relay, và latency giảm từ "poll interval" xuống "WAL stream nhanh tới đâu", tức gần như real time.
 
 ## Đừng trỏ CDC vào bảng nghiệp vụ
 
@@ -48,15 +48,15 @@ flowchart TD
 
 Raw CDC từ bảng nghiệp vụ publish bất cứ gì xảy ra với hàng đó, không biết ý bạn là gì:
 
-- **Schema coupling.** Mọi consumer giờ phụ thuộc vào layout vật lý của bảng. Đổi tên một column, tách một bảng, thêm một NOT NULL — bạn làm hỏng mọi downstream service cùng lúc. Schema lưu trữ của bạn chưa bao giờ được thiết kế để làm public API, và ngay khi nó trở thành public API thì bạn không refactor được nữa.
-- **Event bạn không hề định phát ra.** Một job chạy đêm chạm vào `updated_at`, một lần backfill dữ liệu, một sửa tay trong psql — tất cả stream ra thành "event". Consumer không phân biệt được một thay đổi trạng thái thật với một lần ghi vô tình.
+- **Schema coupling.** Mọi consumer giờ phụ thuộc vào layout vật lý của bảng. Đổi tên column, tách bảng, thêm NOT NULL — bạn làm hỏng mọi downstream service cùng lúc. Schema lưu trữ của bạn chưa bao giờ được thiết kế để làm public API, và ngay khi nó trở thành public API thì bạn không refactor được nữa.
+- **Event bạn không hề định phát ra.** Job chạy đêm chạm vào `updated_at`, một đợt backfill dữ liệu, một lần sửa tay trong psql — tất cả stream ra thành "event". Consumer không phân biệt được một thay đổi trạng thái thật với một lần ghi vô tình.
 - **Không kiểm soát được hình dạng hay ý nghĩa.** Một hàng `orders` thành một change record to với before/after image. Nhưng "order placed" và "order cancelled" là hai event khác nhau, khác consumer, khác payload. Một raw row không phân biệt được chúng.
 
 Bài học: **CDC cho bạn một transport tin cậy, nhưng transport không phải là contract.** Tôi vẫn muốn tự quyết định, tường minh và bằng tay, cái gì được tính là domain event và nó có hình dạng gì. Nên bảng outbox vẫn ở lại — nó chưa bao giờ là phần tôi muốn bỏ. Cái tôi muốn bỏ là *relay*.
 
 ## Giữ outbox, stream nó bằng EventRouter
 
-Bảng outbox ở lại, với các column được chọn để một công cụ change-capture có thể route và định hình mỗi hàng thành một event sạch:
+**Schema outbox được thiết kế để route, không chỉ để lưu** — mỗi column ứng với một phần của message phát ra, nên công cụ change-capture có thể route và định hình từng hàng:
 
 ```sql
 CREATE TABLE outbox_events (
@@ -69,7 +69,7 @@ CREATE TABLE outbox_events (
 );
 ```
 
-Write path giống hệt Phần 1: một transaction, hai insert. Chỉ phần *reader* thay đổi. Thay cho relay của tôi, một Debezium connector đọc WAL và chạy **outbox EventRouter** — một transform có sẵn, biết bảng này là outbox chứ không phải bảng nghiệp vụ, và biến mỗi hàng được insert thành một message được địa chỉ hoá đúng.
+Write path giống hệt Phần 1: một transaction, hai insert. Chỉ phần *reader* thay đổi. Thay cho relay của tôi, Debezium connector đọc WAL và chạy **outbox EventRouter** — một transform có sẵn, biết bảng này là outbox chứ không phải bảng nghiệp vụ, và biến mỗi hàng được insert thành một message được địa chỉ hoá đúng.
 
 ```mermaid
 flowchart LR
@@ -96,7 +96,7 @@ CDC xoá relay, nhưng không xoá chi phí — nó đổi một vấn đề tô
 | **Giờ bạn phải vận hành Kafka Connect** | Một cluster, một connector, một slot + publication phải provision, một dashboard mới |
 | **Vẫn là at-least-once** | Gửi lại sau khi restart → consumer **phải idempotent** (như Phần 1) |
 
-Chỉ một cost thực sự nguy hiểm: **replication slot**. Logical slot khiến Postgres giữ lại WAL cho tới khi consumer đọc qua điểm đó. Nếu Debezium chết mà không ai để ý, WAL dồn lại, disk đầy và **cả database sập** — không chỉ event pipeline. Relay viết tay tệ nhất chỉ tụt lại phía sau; slot thì kéo sập cả DB, nên monitor slot-lag là bắt buộc từ ngày đầu. Hai biến thể của cùng rủi ro: một database ít ghi để slot ghim ở vị trí cũ hàng giờ — khắc phục bằng **heartbeat**, cho Debezium định kỳ ghi một hàng nhỏ để slot tiến lên; và `snapshot.mode: never` không backfill, nên slot phải tồn tại *trước* lần ghi outbox đầu tiên, nếu không event đầu trôi mất.
+Chỉ một chi phí thực sự nguy hiểm: **replication slot**. Logical slot khiến Postgres giữ lại WAL cho tới khi consumer đọc qua điểm đó. Nếu Debezium chết mà không ai để ý, WAL dồn lại, disk đầy và **cả database sập** — không chỉ event pipeline. Relay viết tay tệ nhất chỉ tụt lại phía sau; slot thì kéo sập cả DB, nên monitor slot-lag là bắt buộc từ ngày đầu. Hai biến thể của cùng rủi ro: một database ít ghi để slot ghim ở vị trí cũ hàng giờ — khắc phục bằng **heartbeat**, cho Debezium định kỳ ghi một hàng nhỏ để slot tiến lên; và `snapshot.mode: never` không backfill, nên slot phải tồn tại *trước* lần ghi outbox đầu tiên, nếu không event đầu trôi mất.
 
 Phần còn lại là chi phí vận hành. Bạn giờ chạy thêm Kafka Connect — một cluster, connector, slot/publication (provision bằng Terraform), dashboard — đáng công với nhiều stream nhưng thừa thãi cho một. Và vẫn là at-least-once: consumer vẫn phải idempotent, y như Phần 1.
 

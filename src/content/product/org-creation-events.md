@@ -51,6 +51,9 @@ flowchart TB
   R --> B[Billing listens and sets up the org's account]
   R --> S[Settings listens and seeds the org's default config]
   R --> AN[Analytics listens and registers the org]
+  B --> D[Org fully set up everywhere]
+  S --> D
+  AN --> D
   subgraph Old["The old way: a human checklist"]
     direction TB
     H[Create the organization] --> C1[Then set up billing]

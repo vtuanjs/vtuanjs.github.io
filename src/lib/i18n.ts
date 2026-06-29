@@ -54,6 +54,8 @@ export const UI = {
     searchNoResults: 'No results.',
     searchResultsFor: (q: string) => `Results for "${q}"`,
     taggedWith: (tag: string) => `Tagged: ${tag}`,
+    prevPost: 'Previous',
+    nextPost: 'Next',
     home: {
       description: SITE.description,
       langNoteHtml: 'This blog is available in English and Tiếng Việt. Use the <strong>EN / VI</strong> switch in the menu at the top of the page to change language at any time.',
@@ -86,6 +88,8 @@ export const UI = {
     searchNoResults: 'Không có kết quả.',
     searchResultsFor: (q: string) => `Kết quả cho "${q}"`,
     taggedWith: (tag: string) => `Nhãn: ${tag}`,
+    prevPost: 'Bài trước',
+    nextPost: 'Bài sau',
     home: {
       description: 'Bài viết kỹ thuật và sản phẩm của Tuan Nguyen, một kỹ sư phần mềm.',
       langNoteHtml: 'This blog is available in English and Tiếng Việt. Use the <strong>EN / VI</strong> switch in the menu at the top of the page to change language at any time.',
