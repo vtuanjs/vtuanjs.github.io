@@ -32,28 +32,30 @@ const cancelLabel = t.cancel;
 const okLabel = t.ok;
 ---
 <header class="site-header">
-  <a class="site-title" href={homeHref}>{SITE.title}</a>
-  <nav class="site-nav">
-    {nav.map((item) => (
-      <a
-        href={item.href}
-        aria-current={path.startsWith(item.href) ? 'page' : undefined}
-      >{item.label}</a>
-    ))}
-    <button type="button" class="search-trigger" id="search-trigger" aria-label={t.search}>{t.search}</button>
-    <span class="lang-switch" aria-label="Language">
-      {isVi
-        ? <a href={enHref} data-confirm={confirmAttr}>EN</a>
-        : <span class="active" aria-current="true">EN</span>
-      }
-      <span class="sep">/</span>
-      {isVi
-        ? <span class="active" aria-current="true">VI</span>
-        : <a href={viHref} data-confirm={confirmAttr}>VI</a>
-      }
-    </span>
-    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">🌙</button>
-  </nav>
+  <div class="site-header__inner">
+    <a class="site-title" href={homeHref}>{SITE.title}</a>
+    <nav class="site-nav">
+      {nav.map((item) => (
+        <a
+          href={item.href}
+          aria-current={path.startsWith(item.href) ? 'page' : undefined}
+        >{item.label}</a>
+      ))}
+      <button type="button" class="search-trigger" id="search-trigger" aria-label={t.search}>{t.search}</button>
+      <span class="lang-switch" aria-label="Language">
+        {isVi
+          ? <a href={enHref} data-confirm={confirmAttr}>EN</a>
+          : <span class="active" aria-current="true">EN</span>
+        }
+        <span class="sep">/</span>
+        {isVi
+          ? <span class="active" aria-current="true">VI</span>
+          : <a href={viHref} data-confirm={confirmAttr}>VI</a>
+        }
+      </span>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">🌙</button>
+    </nav>
+  </div>
 </header>
 
 <div
