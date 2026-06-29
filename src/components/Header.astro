@@ -40,10 +40,7 @@ const okLabel = t.ok;
         aria-current={path.startsWith(item.href) ? 'page' : undefined}
       >{item.label}</a>
     ))}
-    <a
-      href={isVi ? '/vi/search/' : '/search/'}
-      aria-current={path === (isVi ? '/vi/search/' : '/search/') ? 'page' : undefined}
-    >{t.search}</a>
+    <button type="button" class="search-trigger" id="search-trigger" aria-label={t.search}>{t.search}</button>
     <span class="lang-switch" aria-label="Language">
       {isVi
         ? <a href={enHref} data-confirm={confirmAttr}>EN</a>
@@ -59,6 +56,31 @@ const okLabel = t.ok;
   </nav>
 </header>
 
+<div
+  class="search-modal"
+  id="search-modal"
+  hidden
+  role="dialog"
+  aria-modal="true"
+  aria-label={t.search}
+  data-index={isVi ? '/vi/search-index.json' : '/search-index.json'}
+  data-vi={isVi ? '1' : ''}
+  data-no-results={t.searchNoResults}
+>
+  <div class="search-modal__backdrop" data-search-close></div>
+  <div class="search-modal__box">
+    <input
+      class="search-input"
+      id="search-input"
+      type="search"
+      placeholder={t.searchPlaceholder}
+      autocomplete="off"
+    />
+    <p class="search-modal__status" id="search-status"></p>
+    <ul class="post-list search-modal__results" id="search-results"></ul>
+  </div>
+</div>
+
 <div class="lang-modal" id="lang-modal" hidden role="dialog" aria-modal="true" aria-labelledby="lang-modal-msg">
   <div class="lang-modal__backdrop" data-close></div>
   <div class="lang-modal__box">
@@ -71,6 +93,54 @@ const okLabel = t.ok;
 </div>
 
 <style>
+  .search-trigger {
+    font: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 1.25rem;
+    color: var(--muted);
+  }
+  .search-trigger:hover { color: var(--accent); }
+
+  .search-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 4rem 1rem 1rem;
+  }
+  .search-modal[hidden] { display: none; }
+  .search-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+  }
+  .search-modal__box {
+    position: relative;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1.25rem;
+    max-width: 40rem;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  }
+  .search-modal__box .search-input { width: 100%; }
+  .search-modal__status { color: var(--muted); font-size: .9rem; margin: 1rem 0 0; }
+  .search-modal__status:empty { display: none; }
+  .search-modal__results { margin: .5rem 0 0; }
+  .search-modal__results:empty { display: none; }
+  .search-modal__results .post-list-item:first-child { padding-top: .5rem; }
+
   .lang-switch {
     margin-left: 1.25rem;
     font-size: 0.85rem;
@@ -184,5 +254,102 @@ const okLabel = t.ok;
     okBtn.addEventListener('click', () => { if (pendingHref) window.location.href = pendingHref; });
     modal.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', close));
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
+  }
+
+  // Search popup: live-filters a static JSON index fetched on first open.
+  interface SearchEntry {
+    title: string;
+    description: string;
+    tags: string[];
+    url: string;
+    space: string;
+    date: string;
+  }
+
+  const trigger = document.getElementById('search-trigger');
+  const searchModal = document.getElementById('search-modal');
+  if (trigger && searchModal) {
+    const input = document.getElementById('search-input') as HTMLInputElement;
+    const statusEl = document.getElementById('search-status') as HTMLElement;
+    const resultsEl = document.getElementById('search-results') as HTMLUListElement;
+    const indexUrl = searchModal.dataset.index || '/search-index.json';
+    const tagPrefix = searchModal.dataset.vi ? '/vi/' : '/';
+    const noResults = searchModal.dataset.noResults || 'No results.';
+
+    let index: SearchEntry[] | null = null;
+    let loading = false;
+    let triggerEl: HTMLElement | null = null;
+
+    const esc = (s: string) =>
+      s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+    const loadIndex = async () => {
+      if (index || loading) return;
+      loading = true;
+      try {
+        index = await (await fetch(indexUrl)).json();
+      } finally {
+        loading = false;
+      }
+      render(input.value);
+    };
+
+    const matches = (e: SearchEntry, q: string) => {
+      const l = q.toLowerCase();
+      return (
+        e.title.toLowerCase().includes(l) ||
+        e.description.toLowerCase().includes(l) ||
+        e.tags.some((tag) => tag.toLowerCase().includes(l))
+      );
+    };
+
+    const render = (q: string) => {
+      if (!q.trim() || !index) {
+        statusEl.textContent = '';
+        resultsEl.innerHTML = '';
+        return;
+      }
+      const hits = index.filter((e) => matches(e, q));
+      statusEl.textContent = hits.length ? '' : noResults;
+      resultsEl.innerHTML = hits
+        .map(
+          (e) => `<li class="post-list-item">
+            <div class="search-result-space">${esc(e.space)}</div>
+            <a class="post-list-title" href="${e.url}">${esc(e.title)}</a>
+            <span class="date">${e.date}</span>
+            ${e.description ? `<p class="excerpt">${esc(e.description)}</p>` : ''}
+            ${e.tags.length ? `<div class="tag-list">${e.tags.map((tag) => `<a class="tag" href="${tagPrefix}${e.space}/tags/${tag}/">${esc(tag)}</a>`).join('')}</div>` : ''}
+          </li>`,
+        )
+        .join('');
+    };
+
+    const openSearch = (from: HTMLElement) => {
+      triggerEl = from;
+      searchModal.hidden = false;
+      input.focus();
+      input.select();
+      loadIndex();
+    };
+    const closeSearch = () => {
+      searchModal.hidden = true;
+      triggerEl?.focus();
+    };
+
+    trigger.addEventListener('click', () => openSearch(trigger as HTMLElement));
+    input.addEventListener('input', () => render(input.value));
+    searchModal.querySelectorAll('[data-search-close]').forEach((el) =>
+      el.addEventListener('click', closeSearch),
+    );
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !searchModal.hidden) closeSearch();
+      // Cmd/Ctrl+K opens search from anywhere.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (searchModal.hidden) openSearch(document.activeElement as HTMLElement);
+        else closeSearch();
+      }
+    });
   }
 </script>

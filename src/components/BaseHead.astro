@@ -1,6 +1,9 @@
 ---
 // SEO: canonical, description, Open Graph, Twitter cards, JSON-LD.
 import { SITE, SOCIALS, SPACE_IDS, SPACES } from '../consts';
+// Imported (not linked from /public) so Astro bundles it with a content-hashed
+// filename — that busts the CDN/browser cache automatically on every change.
+import '../styles/global.css';
 
 interface Props {
   title: string;
@@ -69,5 +72,3 @@ const jsonLd = {
 <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-
-<link rel="stylesheet" href="/styles/global.css" />
