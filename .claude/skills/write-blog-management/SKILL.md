@@ -62,15 +62,17 @@ Every post exists to help someone make one better management decision. If it doe
 | **Goal** | What good looks like — the leadership outcome. |
 ```
 
-4. **Body** — the reasoning. This is where the depth lives:
+4. **Value / what this unlocks** — one paragraph, right after the goal table, before the mechanics. Name the business or team outcome: faster cycle time, smaller blast radius, product owning release decisions, less coordination overhead. Leadership reads to know *what they gain*, not how the thing works. If this paragraph can't be written before drafting the body, the thesis isn't clear yet.
+
+5. **Body** — the reasoning. This is where the depth lives:
    - Why the obvious answer fails
    - The real constraint (usually about people, incentives, or information flow — not technology)
    - The call Tuan makes and why
    - Where he'd decide differently
 
-5. **What changed my mind** — the belief Tuan held that turned out wrong, and the experience that broke it. This is where credibility comes from: "I used to force every senior to mentor juniors; after running a few teams I stopped." A reversal earned through real calls beats another round of explanation. Skip it only when the post genuinely isn't about a changed belief.
+6. **What changed my mind** — the belief Tuan held that turned out wrong, and the experience that broke it. This is where credibility comes from: "I used to force every senior to mentor juniors; after running a few teams I stopped." A reversal earned through real calls beats another round of explanation. Skip it only when the post genuinely isn't about a changed belief.
 
-6. **Trade-off** — what this approach costs; when he'd choose differently. Always a table for scannability, always with prose expanding the *why* below. The table names the failure mode, not just the cost — how this choice breaks in practice:
+7. **Trade-off** — what this approach costs; when he'd choose differently. Always a table for scannability, always with prose expanding the *why* below. The table names the failure mode, not just the cost — how this choice breaks in practice:
 
 ```markdown
 | Benefit | Cost | Failure mode |
@@ -78,15 +80,16 @@ Every post exists to help someone make one better management decision. If it doe
 | Faster decisions | Less consensus | Team stops raising concerns |
 ```
 
-7. **Closing** — one actionable decision the reader can make tomorrow, not a summary of the post. "In your next planning meeting, cut one approval step and see if anyone misses it" beats "good management balances many factors."
+8. **Closing** — one actionable decision the reader can make tomorrow, not a summary of the post. "In your next planning meeting, cut one approval step and see if anyone misses it" beats "good management balances many factors."
 
 ## Voice and language rules
 
-- **No code.** Management posts have zero code blocks. If a concept needs illustration, use a concrete scenario — a real meeting, a real decision, a real conversation structure.
+- **No code examples.** Management posts have zero programming code blocks — no functions, no commands, no config snippets. If a concept needs illustration, use a concrete scenario or a Mermaid diagram. Mermaid flowcharts and sequence diagrams are encouraged — they look professional and let a reader orient the full workflow in seconds. Use flowcharts for pipeline/process overviews, sequence diagrams for multi-party flows (branches, environments, teams). Every section that describes a non-trivial process should have one.
 - **No management clichés.** Cut: "it's all about trust," "fail fast," "psychological safety" (use it only if you're going to say something specific about it), "alignment," "bandwidth." If a phrase appears in every management book, replace it with what you actually mean.
 - **No frameworks as decoration.** Mention a framework (RACI, DACI, OKRs) only if Tuan has something specific to say about using or not using it. Don't name-drop to seem thorough.
 - **First-person, direct, opinionated.** Tuan has managed teams and made real calls. That experience is the authority — not citations or frameworks. Say what he did and why.
 - **Plain language, but not dumbed down.** The audience is experienced. Don't over-explain. Do explain your actual reasoning.
+- **Cut implementation detail.** When a post covers a process or workflow, name the mechanism in one sentence and stop. Timestamps, flag names, pipeline variables, cherry-pick commands — none of this belongs here. Leadership needs to understand *what happens*, not *how it's wired*. If it reads like an engineering spec, it's too deep.
 - **No emoji anywhere.** Not in prose, headings, tables, or labels.
 - **No AI tells.** No "let's explore," "it's important to note," "in conclusion," reflexive hedging.
 
@@ -138,10 +141,12 @@ Save to `src/content/management/` with a kebab-case filename. Always `draft: tru
 ## Checklist before finishing
 
 - [ ] No emoji anywhere.
-- [ ] No code blocks.
+- [ ] No programming code blocks (functions, commands, config). Mermaid flowcharts and sequence diagrams encouraged for any non-trivial process.
 - [ ] No management clichés or framework name-drops without substance.
 - [ ] Hook is a concrete, recognizable situation — not an abstract premise.
 - [ ] Thesis stated in one bold sentence.
+- [ ] Value paragraph present right after the goal table — names the business or team outcome before mechanics.
+- [ ] No implementation detail (flag names, pipeline commands, config variables) — concept only.
 - [ ] Real constraint identified (usually human/organizational, not technical).
 - [ ] The call is consistent with the core philosophy (foundation → step back → watch and intervene), even if the post never names it.
 - [ ] "What changed my mind" present (unless the post genuinely isn't about a reversed belief).
