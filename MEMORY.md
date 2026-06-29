@@ -13,17 +13,17 @@ Diagrams/tables carry structure, prose carries depth (the visual is the entry po
 
 ## Tight prose — readers are lazy
 
-Người đọc rất lười: họ bỏ đi trước khi chạm tới chiều sâu nếu phải lội qua chữ thừa. Mỗi câu phải đáng giá. Không wind-up dài dòng, không lặp lại một ý hai lần để lấy nhịp, không diễn đạt lê thê khi một câu ngắn nói được điều đó. Test: nếu bỏ một câu/mệnh đề mà không mất *ý* nào thì bỏ. Đây là chuyện *độ dài câu chữ*, không phải chiều sâu — nói mỗi ý một lần, sắc, rồi đi tiếp; không bao giờ cắt reasoning. Baked into `write-blog`, `improve-blog`, `vn-translation`.
+Người đọc rất lười: họ bỏ đi trước khi chạm tới chiều sâu nếu phải lội qua chữ thừa. Mỗi câu phải đáng giá. Không wind-up dài dòng, không lặp lại một ý hai lần để lấy nhịp, không diễn đạt lê thê khi một câu ngắn nói được điều đó. Test: nếu bỏ một câu/mệnh đề mà không mất *ý* nào thì bỏ. Đây là chuyện *độ dài câu chữ*, không phải chiều sâu — nói mỗi ý một lần, sắc, rồi đi tiếp; không bao giờ cắt reasoning. Baked into `write-blog` and `vn-translation`.
 
 ## No emoji, natural voice
 
 No emoji anywhere — prose, headings, tables, or Mermaid diagram labels. Write naturally; avoid AI tells ("let's dive in", "in conclusion", "it's important to note", reflexive hedging, bullet padding). Plain, direct, first-person sentences.
 
-Diagram node coloring (e.g. red failure nodes) is fine — it's a comprehension aid, not an AI tell; only emoji are banned. Baked into the `write-blog` and `improve-blog` skills.
+Diagram node coloring (e.g. red failure nodes) is fine — it's a comprehension aid, not an AI tell; only emoji are banned. Baked into the `write-blog` skills.
 
 ## Technical posts: technical language, not decoration
 
-Technical-space posts are carried by **precise engineering language**, not emotion or storytelling. Use the exact terms of art (transaction, commit, idempotent, write-ahead log…) instead of vague analogies. Cut decorative/emotional flourish that carries no technical information — if removing a phrase loses no engineering information, cut it. This is about *register*, not depth: keep all the reasoning and every strong opinion (those are substance), just express them precisely and plainly. Baked into the `write-blog` and `improve-blog` skills. The Vietnamese rule below is the stronger, language-specific version of this.
+Technical-space posts are carried by **precise engineering language**, not emotion or storytelling. Use the exact terms of art (transaction, commit, idempotent, write-ahead log…) instead of vague analogies. Cut decorative/emotional flourish that carries no technical information — if removing a phrase loses no engineering information, cut it. This is about *register*, not depth: keep all the reasoning and every strong opinion (those are substance), just express them precisely and plainly. Baked into the `write-blog` skills. The Vietnamese rule below is the stronger, language-specific version of this.
 
 ## Vietnamese versions: dry and technical
 

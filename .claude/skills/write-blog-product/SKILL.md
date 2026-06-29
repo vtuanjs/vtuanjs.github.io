@@ -7,17 +7,21 @@ description: Draft a new Product space blog post — vision, strategy, and busin
 
 Help Tuan turn a product decision or system into a post that a non-technical stakeholder can read and act on. The audience is a PM, founder, executive, or operator — someone who makes decisions but doesn't write code.
 
-The job is not to explain *how* something works. It's to explain *what* it is, *why* it was built this way, what value it creates, and what it costs to ignore.
+The job is not to explain *how* something works. It's to explain *what* it is, *why* it was built this way, what value it creates, and what it costs to ignore. Never lead with the solution — explain why the problem exists first, and spend more words on the pain than on the fix.
 
-**The spine of every Product post is two things: the problem faced and the benefit delivered.** Everything else is scaffolding. If a sentence isn't naming a real pain or a concrete gain, it's probably decoration — cut it. Don't be flowery, don't be long: a stakeholder skims, so say the pain, say the payoff, and stop.
+## Core philosophy
+
+**Every paragraph must earn its place.** Start with the business pain, explain why it exists, then describe the outcome after solving it. If a sentence names neither a problem nor a benefit, delete it. Prefer one precise noun over ten vague adjectives — *consistency, ownership, latency, trust, onboarding, retry, billing* beat *robust, scalable, flexible, modern*.
+
+That's the whole spine: **problem before solution, benefit before feature, opinion over neutrality.** Everything below is how to execute it.
 
 ## Audience
 
-Non-technical stakeholders. Write as if explaining to a sharp colleague who has never opened a terminal. No code, no implementation detail, no jargon that needs a glossary. If a term requires a technical background to understand, replace it with a plain-language equivalent.
+Non-technical stakeholders. Write as if explaining to a sharp colleague who has never opened a terminal. No code, no implementation detail. Engineering jargon that needs a software background to parse gets replaced with plain language — but words a PM already uses (*API, workflow, platform, onboarding, automation*) are fine. The test: if a PM would understand it, keep it.
 
 ## Post structure
 
-Every Product post follows this shape:
+This is the default shape. Deviate only when a different order makes the argument clearer.
 
 1. **Hook — one business pain, short** (2–4 sentences max). Open on something a non-engineer recognizes: a customer complaint, a support ticket no one could explain, a missed launch, a billing error. The pain should feel real, not abstract.
 
@@ -37,33 +41,30 @@ Every Product post follows this shape:
 
 5. **Why it matters** — the cost of inaction. What keeps breaking if this isn't solved? What can't be offered, what takes ten times longer, what erodes customer trust? This section is often more persuasive than explaining the solution.
 
-6. **The features / pieces** — for each piece of the system or decision:
-   - One sentence: what it is, in plain English.
-   - One sentence: what problem it solves or what the business gains.
+6. **The features / pieces** — for each piece, lead with the benefit, then justify it. Format as a `###` subheading, then:
+   - **Benefit:** one sentence — what the business gains, in plain English.
+   - **Why this exists:** one sentence — the problem that forced it.
    - End with a pointer to the next part if this is a series.
 
-   Format each as a `###` subheading followed by **Benefit:** in bold.
-
-7. **Trade-off table** — what centralizing or building this costs, in business terms (not engineering terms). Then 2–3 sentences of prose: why the cost is worth it, and what the alternative actually looks like in practice.
+7. **Trade-off table** — what building this costs, in business terms. Every trade-off should answer: what got harder, why that's acceptable, who pays the cost, and who gets the benefit. Then 2–3 sentences: why the cost is worth it, and what the alternative actually looks like in practice.
 
 8. **What's next** — one sentence pointing to the next post in the series.
 
 ## Voice and language rules
 
 - **No code blocks.** Zero. If a concept needs illustration, use a plain analogy or a concrete business example.
-- **No jargon.** Replace every technical term with plain English: "idempotent" → "safe to repeat," "event-driven" → "one action triggers everything else automatically," "dual-write" → "writing to two places at once."
+- **Translate engineering terms to plain English:** "idempotent" → "safe to repeat," "event-driven" → "one action triggers everything else automatically," "dual-write" → "writing to two places at once." (See the jargon test under Audience — PM-level words stay.)
 - **Mermaid only for high-level business flows** — customer onboarding, feature rollout, provisioning sequence. Never system internals or data models. Node labels in plain English.
-- **No flowery or decorative writing.** Drop scene-setting, dramatic build-ups, and adjectives that add mood but no information ("a terrible afternoon", "painfully slow"). State the pain plainly, then the gain. If removing a phrase loses no problem and no benefit, cut it.
-- **Default to the shortest version, then cut again.** The first draft is always too long. Re-read each paragraph and delete every word that earns nothing. Shorter is the goal, not a loss.
-- **Plain, direct, first-person.** No corporate-neutral prose. Tuan has opinions — state them.
-- **Still opinionated.** The point of view is the product. Don't sand down strong takes into "it depends."
+- **Plain, direct, first-person, opinionated.** Tuan has a point of view — state it. The point of view is the product; don't sand strong takes into "it depends," and don't write corporate-neutral prose.
 - **No emoji anywhere.** Not in prose, headings, tables, or diagram labels.
 - **No AI tells.** No "let's dive in," "in conclusion," "it's worth noting," or reflexive hedging.
+
+(Concision and "cut decoration" are covered in Core philosophy — apply them here too.)
 
 ## The rules that apply to every post
 
 1. **One focused topic per post.** If the post covers two real decisions, it's two posts — say so and offer to split.
-2. **The project is the source, never the subject.** Abstract to the general pattern. No real employer, team, or system names.
+2. **Generalize the lesson; never write about a specific employer.** The project is the source, not the subject — abstract to the general pattern, no real team or system names.
 3. **Write to express judgment.** The trade-off weighed, the call made, what he'd do differently. Opinion is the product.
 
 ## Frontmatter
@@ -91,14 +92,12 @@ Save to `src/content/product/` with a kebab-case filename. Always `draft: true` 
 
 ## Checklist before finishing
 
-- [ ] No emoji anywhere.
-- [ ] No code blocks.
-- [ ] No jargon that needs a glossary.
+- [ ] No emoji, no code blocks, no jargon that needs a software background.
+- [ ] Problem explained before the solution; pain gets more words than the fix.
 - [ ] Hook opens on business pain a non-engineer recognizes.
 - [ ] Vision stated in one bold sentence.
-- [ ] Each feature/piece has a benefit in 1–2 sentences.
+- [ ] Each feature leads with the benefit, then why it exists.
 - [ ] Cost of inaction named.
-- [ ] Trade-off section present and honest.
-- [ ] Tight prose: no point restated twice, no clause that can go without losing an idea.
-- [ ] Not flowery, not long: every sentence names a problem or a benefit; decoration cut; did the shortest-version pass.
+- [ ] Trade-off section names who pays the cost and who gets the benefit.
+- [ ] Every sentence names a problem or a benefit; precise nouns over vague adjectives; nothing restated twice.
 - [ ] Frontmatter complete, saved to `src/content/product/`, `draft: true`.

@@ -9,7 +9,7 @@ Produce the Vietnamese version of one of Tuan's posts so it reads like it was **
 
 ## The one rule that overrides everything
 
-**Never change the author's idea.** Same contract as `improve-blog`: you translate and localize *language*, you do not touch substance. No new claims, no dropped points, no softened opinions, no reordered argument. If the English says "I avoid X every time," the Vietnamese says exactly that with the same force. Idea-level doubts become questions at the end — never silent edits.
+**Never change the author's idea.** You translate and localize *language*, you do not touch substance. No new claims, no dropped points, no softened opinions, no reordered argument. If the English says "I avoid X every time," the Vietnamese says exactly that with the same force. Idea-level doubts become questions at the end — never silent edits.
 
 ## What "reads like a translation" actually means — and how to kill it
 
@@ -36,6 +36,7 @@ Vietnamese engineers code and talk in a mix: Vietnamese grammar, English terms o
 - **Translate to Vietnamese** (the connective, everyday words): the verbs and nouns around the terms — "ghi vào database", "đọc bảng", "hàng đó", "tiến trình riêng", "thất bại trong im lặng", "đánh dấu hàng đã xong", "giữ lock và chờ".
 - **Don't half-translate a term of art.** Either it's the English term or it's not — never "sự kiện cam-kết" for "commit".
 - **First use of a less-common term:** a short Vietnamese gloss in parentheses is fine once, then use the English term. e.g. "idempotent (gọi lại nhiều lần vẫn ra một kết quả)". Don't gloss common terms everyone knows (commit, deploy, log).
+- **Keep measurable-property terms in English, never dilute them into vague Vietnamese.** `idempotent`, `at-least-once`, `append-only`, `monotonic`, `bounded memory`, `lock contention`, `write amplification`, `O(log n)` carry the exact engineering claim — translating them into "ổn định", "tối ưu", "mạnh mẽ" throws away the precision. And don't *introduce* vague quality words the English didn't have ("giải pháp mạnh mẽ", "kiến trúc tối ưu", "chuẩn production"); if the English names a property, the Vietnamese keeps that property in English.
 
 The rule of thumb: **if a Vietnamese engineer would say the English word out loud in a meeting, keep it in English in the post.**
 
@@ -99,6 +100,7 @@ The repo links the two language versions through frontmatter and a `vi/` subdire
 - [ ] No literal English idioms — every metaphor reads natively in Vietnamese.
 - [ ] Technical terms of art kept in English; only the connective words are Vietnamese.
 - [ ] No half-translated terms (e.g. no "sự kiện cam-kết" for commit).
+- [ ] Measurable-property terms kept in English (idempotent, at-least-once…); no vague quality words ("mạnh mẽ", "tối ưu", "chuẩn production") introduced that the English didn't have.
 - [ ] Active, short sentences; English run-ons and passive pile-ups broken up; no `được + verb` stacking.
 - [ ] No `một` article calque — dropped unless the count *one* actually matters.
 - [ ] No emotional/decorative words, no redundancy, no lê thê — every phrase carries technical information; no wind-up clauses, no point restated twice.

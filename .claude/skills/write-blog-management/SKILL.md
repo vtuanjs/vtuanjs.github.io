@@ -9,6 +9,18 @@ Help Tuan turn a leadership or team decision into a finished draft. The audience
 
 This is not engineering implementation. It's the layer above it: how to make calls about people, process, and org design — grounded in engineering reality but about how teams work, not how code works.
 
+## Core philosophy
+
+Every post should argue, implicitly or explicitly, from one belief: **a manager leads by laying a solid foundation, then steps back so the team can own the work — while never stopping watching.**
+
+In practice that means three moves, in order:
+
+1. **Lead from the front first.** Set the foundation that's hard to fix later — the codebase, the standards, the process, the way decisions get made. The leader does this directly; it doesn't get delegated before it exists.
+2. **Then step back.** Once the foundation holds, get out of the way. The team owns execution and grows by carrying it. A manager who keeps making every call has failed to build the foundation that lets him leave.
+3. **But keep watching, and step in fast.** Stepping back is not stepping out. Watch continuously; the moment something drifts off course, jump in and fix it, then step back again.
+
+The tension this philosophy lives in — and what most management posts here are really about — is the judgment of *when* each move applies: how much foundation is enough before stepping back, what counts as "off course" versus a team finding its own way, and when intervening rebuilds trust versus when it undermines ownership. A post that resolves one of those tensions with a concrete call is on-target. If a process or an intervention doesn't either strengthen the foundation, enable ownership, or correct a real drift, it's friction — cut it.
+
 ## Audience
 
 Tech leads, engineering managers, senior ICs, and founders. They understand engineering but are wrestling with the harder problems: how to structure a team, how to give feedback that sticks, how to decide when to rewrite, how to run planning that doesn't waste everyone's time. They're experienced enough to smell corporate-speak and vague frameworks — write with the same directness you'd use talking to a peer.
@@ -24,6 +36,15 @@ No code. Minimal jargon. But don't talk down to them — they're smart people de
 - What to optimize for at each stage of a team's growth
 - Org design decisions: team topologies, ownership models, on-call rotation
 - The management layer of technical decisions: how to communicate a technical bet to stakeholders, how to get engineering buy-in on a direction
+
+## What this is NOT
+
+- Not a leadership-inspiration blog. No motivational arcs, no "great leaders do X."
+- Not a collection of frameworks. A framework appears only when Tuan is arguing for or against using it.
+- Not generic career advice.
+- Not a book summary. Don't explain Scrum, Agile, OKRs, DORA, or Team Topologies; reference them only to take a position on a specific practice.
+
+Every post exists to help someone make one better management decision. If it does anything else, it's the wrong post for this space.
 
 ## Post structure
 
@@ -47,9 +68,17 @@ No code. Minimal jargon. But don't talk down to them — they're smart people de
    - The call Tuan makes and why
    - Where he'd decide differently
 
-5. **Trade-off** — what this approach costs; when he'd choose differently. Always a table for scannability, always with prose expanding the *why* below.
+5. **What changed my mind** — the belief Tuan held that turned out wrong, and the experience that broke it. This is where credibility comes from: "I used to force every senior to mentor juniors; after running a few teams I stopped." A reversal earned through real calls beats another round of explanation. Skip it only when the post genuinely isn't about a changed belief.
 
-6. **Closing** — one direct sentence. The takeaway a reader can act on.
+6. **Trade-off** — what this approach costs; when he'd choose differently. Always a table for scannability, always with prose expanding the *why* below. The table names the failure mode, not just the cost — how this choice breaks in practice:
+
+```markdown
+| Benefit | Cost | Failure mode |
+|---|---|---|
+| Faster decisions | Less consensus | Team stops raising concerns |
+```
+
+7. **Closing** — one actionable decision the reader can make tomorrow, not a summary of the post. "In your next planning meeting, cut one approval step and see if anyone misses it" beats "good management balances many factors."
 
 ## Voice and language rules
 
@@ -114,7 +143,10 @@ Save to `src/content/management/` with a kebab-case filename. Always `draft: tru
 - [ ] Hook is a concrete, recognizable situation — not an abstract premise.
 - [ ] Thesis stated in one bold sentence.
 - [ ] Real constraint identified (usually human/organizational, not technical).
-- [ ] Trade-off section present, honest, and specific.
+- [ ] The call is consistent with the core philosophy (foundation → step back → watch and intervene), even if the post never names it.
+- [ ] "What changed my mind" present (unless the post genuinely isn't about a reversed belief).
+- [ ] Trade-off table names the failure mode, not just the cost.
+- [ ] Closing is one decision the reader can act on tomorrow — not a summary.
 - [ ] Tight prose: no point restated twice, no clause that can go without losing an idea.
 - [ ] Nothing identifies the real team, company, or individuals.
 - [ ] Frontmatter complete, saved to `src/content/management/`, `draft: true`.
