@@ -73,11 +73,10 @@ The common counter-objection: "That adds complexity." It does — one `if` state
 
 <Pipeline
   steps={[
-    { label: 'fix in develop', note: 'always first', tone: 'accent' },
+    { label: 'fix in develop', tone: 'accent' },
     { label: 'verify on staging' },
     { label: 'cherry-pick to production', tone: 'ok' },
   ]}
-  caption="Fix production first and the next release silently overwrites the fix — the most common hotfix failure."
 />
 
 ## The cultural shift
@@ -94,7 +93,7 @@ I used to cut release branches. The workflow felt structured: `release/2.4` bran
 
 In practice it meant two codebases running in parallel. Fixes in production went into the release branch. If someone remembered, they also went into `develop`. Bugs appeared in production that had been fixed in `develop` but never backported. The release branch wasn't protecting production — it was hiding integration debt and creating a second fix surface that diverged under pressure.
 
-Tags on `develop` do the same job — a stable, immutable artifact you can promote — without the parallel codebase. There's one source of truth. The hotfix path is explicit: fix in `develop` first, verify, cherry-pick to the tag, deploy.
+Tags on `develop` do the same job — a stable, immutable artifact you can promote — without the parallel codebase. There's one source of truth.
 
 ## The trade-offs
 
@@ -103,7 +102,7 @@ Tags on `develop` do the same job — a stable, immutable artifact you can promo
 | Integration risk surfaces at merge time, not release time | Every merge must pass CI | Flaky tests slow everyone down; teams start ignoring red builds |
 | Product controls release independently of engineering pipeline | Feature flags accumulate | Old flags never get cleaned up; codebase fills with dead conditions |
 | Staging always reflects latest integrated code | Engineers need flag discipline | Unguarded incomplete code ships to users |
-| Hotfix path is isolated from ongoing work | Fix must land in `develop` before production | Under pressure, the order reverses — fix goes to production first, `develop` never gets it |
+| Hotfix path is isolated from ongoing work | Order reverses under pressure | Fix goes to production first, `develop` never gets it |
 
 The biggest investment isn't infrastructure. It's CI discipline and the cultural norm around small, frequent merges. Both require sustained attention from the manager, not just an initial rollout.
 

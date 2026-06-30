@@ -104,16 +104,15 @@ This setup requires a `GetCurrentRelease` workflow action. Before cherry-picking
 **The fix always starts in `develop`, never the hotfix branch.** This is the invariant that cannot reverse under pressure.
 
 <Pipeline
-  title="Hotfix order that must not reverse"
+  title="Hotfix order"
   steps={[
-    { label: 'merge fix to develop', note: 'always starts here', tone: 'accent' },
+    { label: 'merge fix to develop', tone: 'accent' },
     { label: 'auto-deploy to staging' },
     { label: 'verify the fix' },
     { label: 'cherry-pick to hotfix branch' },
     { label: 'build hotfix artifact', note: 'tagged from hotfix branch' },
     { label: 'deploy to production', note: 'manual trigger', tone: 'ok' },
   ]}
-  caption="Reverse this — fix production first — and the next release from develop silently overwrites the fix."
 />
 
 If the fix goes to the hotfix branch first — the instinct under an incident — it exists only in the hotfix branch. When the next release from `develop` is promoted, the fix is overwritten. This is the most common hotfix failure mode, and it's hard to catch because the system looks correct immediately after the incident.
@@ -133,7 +132,7 @@ Tags on `develop` are immutable deploy artifacts that do the same job. The diffe
 | Integration risk surfaces at merge time, not release time | Every merge must pass CI | Flaky tests slow everyone down; teams start ignoring red builds |
 | Staging always reflects latest `develop` | Feature flags accumulate | Old flags never get cleaned up; dead code with guards |
 | Production promotions are explicit tag choices | Timestamp gate must be maintained | Gate drift lets old tags through |
-| Hotfix path is pre-created | Fix must land in `develop` before production | Under pressure, order reverses — fix goes to production first and gets lost |
+| Hotfix path is pre-created | Order reverses under pressure | Fix goes to production first and gets lost on the next develop release |
 
 The non-negotiable dependency is CI reliability. A 40-minute flaky test suite in this model is worse than in any other — it's the gate every engineer hits multiple times a day. One engineer who starts bypassing CI because "the test is flaky anyway" breaks the model for everyone. Fix the test; don't route around it.
 
