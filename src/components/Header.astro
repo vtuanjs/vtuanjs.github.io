@@ -136,7 +136,7 @@ const nav = navItems();
   interface SearchEntry {
     title: string;
     description: string;
-    tags: string[];
+    tags?: string[];
     url: string;
     space: string;
     date: string;
@@ -174,7 +174,7 @@ const nav = navItems();
       return (
         e.title.toLowerCase().includes(l) ||
         e.description.toLowerCase().includes(l) ||
-        e.tags.some((tag) => tag.toLowerCase().includes(l))
+        (e.tags ?? []).some((tag) => tag.toLowerCase().includes(l))
       );
     };
 
@@ -188,12 +188,12 @@ const nav = navItems();
       statusEl.textContent = hits.length ? '' : noResults;
       resultsEl.innerHTML = hits
         .map(
-          (e) => `<li class="post-list-item">
+          (e) => `<li class="post-list-item is-visible">
             <div class="search-result-space">${esc(e.space)}</div>
             <a class="post-list-title" href="${e.url}">${esc(e.title)}</a>
             <span class="date">${e.date}</span>
             ${e.description ? `<p class="excerpt">${esc(e.description)}</p>` : ''}
-            ${e.tags.length ? `<div class="tag-list">${e.tags.map((tag) => `<a class="tag" href="/${e.space}/tags/${tag}/">${esc(tag)}</a>`).join('')}</div>` : ''}
+            ${e.tags?.length ? `<div class="tag-list">${e.tags.map((tag) => `<a class="tag" href="/${e.space}/tags/${tag}/">${esc(tag)}</a>`).join('')}</div>` : ''}
           </li>`,
         )
         .join('');
