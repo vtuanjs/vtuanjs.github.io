@@ -81,6 +81,11 @@ Centralizing these decisions doesn't add complexity. It removes the hidden compl
   <figcaption>Every person in one list — role, activation state, and lock status all visible and filterable. One record per person, one place to change it.</figcaption>
 </figure>
 
+<figure>
+  <img src="/images/iam-roles.png" alt="Roles list in IAM Admin showing role name, app, and description — roles are scoped per app so each integrated system can check who is allowed in" />
+  <figcaption>Each role is scoped to a specific app. When an integrated system needs to check access, it reads the role assigned to that user for their org and app — one governed answer, not a local guess.</figcaption>
+</figure>
+
 ### Feature flag — test with real customers before rolling out to everyone
 
 **Benefit:** Faster, safer launches. Pilots with specific customers before committing to everyone. No emergency deploys to turn something off.
