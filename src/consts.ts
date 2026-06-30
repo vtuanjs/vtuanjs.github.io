@@ -36,6 +36,6 @@ export const SPACES = {
     path: '/management/',
     label: 'Management',
     name: 'Management space',
-    blurb: 'Engineering leadership, team decisions, and org design — the layer above the code.',
+    blurb: 'Technical leadership and system management — steering engineering teams and the systems they own.',
   },
 } as const;

@@ -1,0 +1,69 @@
+---
+// EnvParity — two ways to provision dev / staging / production. Manual: each
+// environment is hand-configured on its own, so the three state dots pulse out
+// of phase and the copies drift apart. Seeded: every environment is seeded from
+// one source of default values, so a packet feeds down from the source and all
+// the dots change in lockstep — the environments start from the same defaults.
+// Use for config / infra ownership and environment-parity posts.
+import '../../styles/diagrams.css';
+
+interface Props {
+  envs?: string[];
+  sourceLabel?: string;
+  manualTitle?: string;
+  manualText?: string;
+  manualTag?: string;
+  syncTitle?: string;
+  syncText?: string;
+  syncTag?: string;
+  caption?: string;
+}
+const {
+  envs = ['dev', 'staging', 'production'],
+  sourceLabel = 'YAML seed',
+  manualTitle = 'Hand-configured per environment',
+  manualText = 'Someone types the config into each environment by hand. A value lands in one and is forgotten in another, and the environments drift apart.',
+  manualTag = 'human error, quietly',
+  syncTitle = 'Seeded from one set of defaults',
+  syncText = 'Every environment is seeded from the same YAML config, so the same records exist everywhere with the same defaults — nothing missed, nothing mistyped.',
+  syncTag = 'same defaults everywhere',
+  caption,
+} = Astro.props;
+---
+<div class="dw">
+  <div class="dw-grid">
+    <div class="dw-card bad">
+      <div class="dw-h">{manualTitle}</div>
+      <div class="dw-ep" role="img" aria-label="Three environments hand-edited separately, drifting out of sync">
+        {envs.map((e, i) => (
+          <div class="dw-ep-row">
+            <span>{e}</span>
+            <span class="dw-ep-dot drift" style={`--i:${i}`}></span>
+          </div>
+        ))}
+      </div>
+      <p>{manualText}</p>
+      <span class="dw-tag fail">{manualTag}</span>
+    </div>
+
+    <div class="dw-card good">
+      <div class="dw-h">{syncTitle}</div>
+      <div class="dw-ep" role="img" aria-label="One versioned source feeding every environment, all changing in lockstep">
+        <div class="dw-ep-row src">
+          <span>{sourceLabel}</span>
+          <span class="dw-ep-dot sync"></span>
+        </div>
+        <span class="dw-ep-feed" aria-hidden="true"></span>
+        {envs.map((e) => (
+          <div class="dw-ep-row">
+            <span>{e}</span>
+            <span class="dw-ep-dot sync"></span>
+          </div>
+        ))}
+      </div>
+      <p>{syncText}</p>
+      <span class="dw-tag ok">{syncTag}</span>
+    </div>
+  </div>
+  {caption && <p class="dw-caption">{caption}</p>}
+</div>

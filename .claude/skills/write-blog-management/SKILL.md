@@ -1,13 +1,13 @@
 ---
 name: write-blog-management
-description: Draft a new Management space blog post — engineering leadership, team decisions, organizational design, and people/process topics written for tech leads, engineering managers, and senior ICs. Use when writing to src/content/management/.
+description: Draft a new Management space blog post — technical leadership and system management: steering engineering teams and the systems they own. Use when writing to src/content/management/.
 ---
 
 # Write a Management blog post
 
 Help Tuan turn a leadership or team decision into a finished draft. The audience is tech leads, engineering managers, senior ICs moving into leadership, and founders managing technical teams.
 
-This is not engineering implementation. It's the layer above it: how to make calls about people, process, and org design — grounded in engineering reality but about how teams work, not how code works.
+This is technical leadership and system management: how to steer engineering teams and the systems they own — staffing calls, process design, reliability ownership, incident culture, and the organizational decisions that determine whether a system stays healthy long-term.
 
 ## Core philosophy
 

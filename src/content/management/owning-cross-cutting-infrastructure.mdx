@@ -1,0 +1,86 @@
+---
+title: "Who owns the answer when the answer is wrong?"
+description: "Three teams, three answers about one customer. When shared data has no single owner, the copies drift — and no one owns the fix."
+date: 2026-06-30
+author: Tuan Nguyen
+draft: false
+tags: [team-design, ownership, infrastructure]
+---
+
+import CompareCards from '../../components/diagrams/CompareCards.astro';
+import FanOut from '../../components/diagrams/FanOut.astro';
+
+A customer escalates to support. Support escalates to engineering. Three teams pull their logs — each system says something different about whether this customer has access. One says active, one says locked, one says no record. The bug isn't in any single team's code. The bug is that three teams each made a local copy of the same truth, and the copies drifted apart.
+
+**Shared data without a single owner is not shared — it's duplicated, and duplicated data drifts.**
+
+| | |
+|---|---|
+| **Problem** | Customer identity, permissions, and configuration are maintained independently by each team that needs them. Each copy is internally consistent; inconsistency only surfaces at customer boundaries. |
+| **Why** | Building locally is faster — no coordination, no dependency on another team. The cost doesn't appear until a customer feels it, usually at the worst moment. |
+| **Goal** | One system owns these decisions. Every other team reads from it; none maintain their own copy. |
+
+## What one owner buys you
+
+When one system holds the authoritative answer to who a customer is and what they can do, a whole class of bugs disappears — the ones with no natural owner. Onboarding becomes one action instead of a coordinated checklist across teams. Feature launches stop waiting on every team to update its copy. Support answers from one place instead of escalating. The win isn't cleaner architecture; it's that nobody has to keep copies in sync anymore, because there is only one.
+
+## Why the bug has no owner
+
+Each team's copy is correct in its own context — the tests pass, the API returns what it should. The inconsistency only appears when two systems' answers meet, which happens at a customer boundary, so the first signal is a customer-facing bug. And when it surfaces, every team is nominally responsible, which means none of them actually is: the team that caught the escalation patches its copy and moves on, and the others stay wrong until they cause their own incident. The cause sits between teams, where no single team owns it.
+
+<CompareCards
+  cards={[
+    {
+      tone: 'bad',
+      title: 'Each team maintains its own copy',
+      text: 'Every part of the product stores what it knows about the customer. Coordination keeps them aligned — until it doesn\'t. The gap shows up as a customer bug, and no one owns the fix.',
+      tag: 'the cause has no owner',
+    },
+    {
+      tone: 'good',
+      title: 'One system owns the answer',
+      text: 'Every part of the product reads from the same source. No team maintains a local copy. The answer is the same wherever you ask, because there is only one place to ask.',
+      tag: 'one source of truth',
+    },
+  ]}
+/>
+
+## The system I built
+
+I built that system. IAM is the single owner of who a customer is and everything that gates what they can do — and every other service reads from it instead of keeping a copy:
+
+<FanOut
+  source={{ label: 'IAM', note: 'one owner of the answer' }}
+  targets={[
+    { label: 'Organization', note: 'one customer record', tone: 'accent' },
+    { label: 'User', note: 'who, and what they can do', tone: 'accent' },
+    { label: 'Feature flag', note: 'who sees what, when', tone: 'accent' },
+    { label: 'Config', note: 'each customer’s settings', tone: 'accent' },
+    { label: 'Rules', note: 'business logic, no deploy', tone: 'accent' },
+  ]}
+  caption="One system owns these decisions; every other part of the product reads from it."
+/>
+
+The deep tour of each piece — what the records are, why they exist, and what breaks without them — is a separate write-up: [Identity and access management as one system](/product/introduce-iam-system).
+
+## What changed my mind
+
+I used to let teams keep their own copies on purpose. Forcing every team to depend on one system felt like premature centralization — slower to build, a dependency no one asked for, a bottleneck waiting to happen. Local copies were faster, and for a long time they worked. So I let them.
+
+What broke that wasn't an architecture argument. It was watching the same customer-facing bug recur with a different team's name on it each time, and realizing no retro ever fixed the actual cause, because the cause had no owner. The cost of duplication isn't paid in build time — it's paid in incidents that nobody is responsible for preventing. Once I'd seen that bill come due a few times, the "premature" centralization stopped looking premature.
+
+## The trade-off
+
+A single owner trades a diffuse, deniable cost for a concentrated, visible one. That's usually the right trade — a cost you can see is a cost you can manage — but it's a real trade, and it fails in specific ways.
+
+| Benefit | Cost | Failure mode |
+|---|---|---|
+| One authoritative answer, no drift | Every team now depends on one team | The owning team becomes a bottleneck; every change queues behind it |
+| A whole class of orphaned bugs disappears | A genuine single point of failure | The system goes down and every product surface degrades at once |
+| Onboarding and launches stop needing coordination | The owning team must run like infrastructure | Treated as a normal feature team, it can't keep up and teams route around it — recreating the copies |
+
+The bottleneck is the one that bites first. The moment one team owns the answer, every other team's change to that answer goes through them, and a team that's staffed and prioritized like a feature team will fall behind. The fix isn't to redistribute ownership — that just brings the drift back. It's to fund and operate the owning team as infrastructure: capacity ahead of demand, self-service for the common changes, and a clear bar for what actually needs the owning team's involvement versus what a consuming team can do itself. Centralize the answer; decentralize as much of the work of changing it as you safely can.
+
+## One decision for tomorrow
+
+In your next incident review involving a data inconsistency — wrong customer state, access that should have been revoked, configuration that didn't apply — ask one question after the fix ships: if this record were wrong tomorrow, who would be first to know, and who would own fixing it? If the answer is "it depends which system surfaces it first," that's the gap. Assign a single owner before the next incident, not after.
