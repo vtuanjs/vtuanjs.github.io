@@ -10,12 +10,6 @@ const postSchema = z.object({
   image: z.string().optional(), // social-card / Open Graph image
   draft: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
-  // Language of this post; the rest of the site treats `en` as the default.
-  lang: z.enum(['en', 'vi']).default('en'),
-  // Link to the same post in the other language. Accepts a relative path
-  // (e.g. "/vi/technical/my-post/") or an absolute URL.
-  vi_url: z.string().optional(),
-  en_url: z.string().optional(),
 });
 
 // One collection per "space" — each is an independent blog.

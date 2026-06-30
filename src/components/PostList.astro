@@ -1,21 +1,20 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import type { SpaceId } from '../consts';
-import { spaceMeta, formatDate, stripVi, type Lang } from '../lib/i18n';
+import { spaceMeta, formatDate } from '../lib/site';
 
 interface Props {
   posts: CollectionEntry<SpaceId>[];
   space: SpaceId;
-  lang: Lang;
 }
-const { posts, space, lang } = Astro.props;
-const base = spaceMeta(space, lang).path;
+const { posts, space } = Astro.props;
+const base = spaceMeta(space).path;
 ---
 <ul class="post-list">
   {posts.map((post) => (
     <li class="post-list-item">
-      <a class="post-list-title" href={`${base}${stripVi(post.id)}/`}>{post.data.title}</a>
-      <span class="date">{formatDate(post.data.date, lang)}</span>
+      <a class="post-list-title" href={`${base}${post.id}/`}>{post.data.title}</a>
+      <span class="date">{formatDate(post.data.date)}</span>
       {post.data.description && <p class="excerpt">{post.data.description}</p>}
       {post.data.tags.length > 0 && (
         <div class="tag-list">

@@ -18,47 +18,24 @@ export const SOCIALS = [
 export const SPACE_IDS = ['product', 'technical', 'management'] as const;
 export type SpaceId = (typeof SPACE_IDS)[number];
 
-// Per-space config, keyed by collection name. Each space carries its English
-// and Vietnamese copy side by side; the English `path` is the base — the
-// Vietnamese path is derived by prefixing `/vi` (see `spaceMeta` in lib/i18n).
+// Per-space config, keyed by collection name.
 export const SPACES = {
   product: {
     path: '/product/',
-    en: {
-      label: 'Product',
-      name: 'Product space',
-      blurb: 'Notes on product thinking, discovery, and building things people use.',
-    },
-    vi: {
-      label: 'Sản phẩm',
-      name: 'Không gian sản phẩm',
-      blurb: 'Ghi chép về tư duy sản phẩm, quá trình khám phá, và việc xây dựng những thứ mọi người thực sự dùng.',
-    },
+    label: 'Product',
+    name: 'Product space',
+    blurb: 'Notes on product thinking, discovery, and building things people use.',
   },
   technical: {
     path: '/technical/',
-    en: {
-      label: 'Technical',
-      name: 'Technical space',
-      blurb: 'Engineering write-ups, architecture, and lessons from the code.',
-    },
-    vi: {
-      label: 'Kỹ thuật',
-      name: 'Không gian kỹ thuật',
-      blurb: 'Các bài viết kỹ thuật, kiến trúc hệ thống, và những bài học rút ra từ code.',
-    },
+    label: 'Technical',
+    name: 'Technical space',
+    blurb: 'Engineering write-ups, architecture, and lessons from the code.',
   },
   management: {
     path: '/management/',
-    en: {
-      label: 'Management',
-      name: 'Management space',
-      blurb: 'Engineering leadership, team decisions, and org design — the layer above the code.',
-    },
-    vi: {
-      label: 'Quản lý',
-      name: 'Không gian quản lý',
-      blurb: 'Lãnh đạo kỹ thuật, quyết định nhóm, và thiết kế tổ chức — tầng trên cùng của code.',
-    },
+    label: 'Management',
+    name: 'Management space',
+    blurb: 'Engineering leadership, team decisions, and org design — the layer above the code.',
   },
 } as const;

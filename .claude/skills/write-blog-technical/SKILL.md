@@ -111,7 +111,7 @@ draft: true
 - **`title`** — name the decision, not the topic. "Putting role IDs (not role names) in the token" beats "Token design."
 - **`description`** — the one question this post answers. A reader should know in one line whether it's for them.
 
-Save to `src/content/technical/` (or `src/content/technical/vi/` for Vietnamese). Always `draft: true` until Tuan confirms.
+Save to `src/content/technical/`. Always `draft: true` until Tuan confirms.
 
 ## How to work
 

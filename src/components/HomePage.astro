@@ -1,29 +1,23 @@
 ---
-// The landing page, rendered for either language. /index.astro and
-// /vi/index.astro are thin wrappers that just pick the `lang`.
+// The landing page.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ContactList from './ContactList.astro';
 import { SITE, SPACE_IDS } from '../consts';
-import { spaceMeta, formatDate, stripVi, UI, type Lang } from '../lib/i18n';
+import { spaceMeta, formatDate, UI } from '../lib/site';
 import { loadPosts } from '../lib/posts';
 
-interface Props {
-  lang: Lang;
-}
-const { lang } = Astro.props;
-const t = UI[lang].home;
+const t = UI.home;
 
-const spaces = SPACE_IDS.map((id) => spaceMeta(id, lang));
+const spaces = SPACE_IDS.map((id) => spaceMeta(id));
 const recent = await Promise.all(
   SPACE_IDS.map(async (id) => {
-    const meta = spaceMeta(id, lang);
-    return { label: meta.label, path: meta.path, posts: (await loadPosts(id, lang)).slice(0, 3) };
+    const meta = spaceMeta(id);
+    return { label: meta.label, path: meta.path, posts: (await loadPosts(id)).slice(0, 3) };
   })
 );
 ---
 <BaseLayout title={SITE.title} description={t.description}>
   <section class="hero">
-    <p class="lang-note" set:html={t.langNoteHtml}></p>
     <h1>{t.greeting}</h1>
     {t.lead.map((p) => <p class="lead">{p}</p>)}
     <ContactList />
@@ -45,8 +39,8 @@ const recent = await Promise.all(
         <ul class="post-list">
           {r.posts.map((p) => (
             <li>
-              <a href={`${r.path}${stripVi(p.id)}/`}>{p.data.title}</a>
-              <span class="date">{formatDate(p.data.date, lang, 'short')}</span>
+              <a href={`${r.path}${p.id}/`}>{p.data.title}</a>
+              <span class="date">{formatDate(p.data.date, 'short')}</span>
             </li>
           ))}
         </ul>
@@ -54,16 +48,3 @@ const recent = await Promise.all(
     ))}
   </section>
 </BaseLayout>
-
-<style>
-  .lang-note {
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--accent);
-    border-radius: 6px;
-    padding: 0.6rem 0.9rem;
-    margin-bottom: 1.5rem;
-    font-size: 0.9rem;
-    color: var(--muted);
-  }
-  .lang-note :global(strong) { color: var(--ink); }
-</style>

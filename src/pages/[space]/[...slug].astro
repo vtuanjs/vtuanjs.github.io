@@ -2,13 +2,13 @@
 import { render } from 'astro:content';
 import PostLayout from '../../layouts/PostLayout.astro';
 import { SPACE_IDS, type SpaceId } from '../../consts';
-import { spaceMeta, stripVi } from '../../lib/i18n';
+import { spaceMeta } from '../../lib/site';
 import { getAdjacentPosts, loadPosts } from '../../lib/posts';
 
 export async function getStaticPaths() {
   const paths = [];
   for (const space of SPACE_IDS) {
-    for (const post of await loadPosts(space, 'en', { drafts: true })) {
+    for (const post of await loadPosts(space, { drafts: true })) {
       paths.push({ params: { space, slug: post.id }, props: { post } });
     }
   }
@@ -19,10 +19,10 @@ const { post } = Astro.props;
 const space = Astro.params.space as SpaceId;
 const { Content } = await render(post);
 
-const base = spaceMeta(space, 'en').path;
-const { newer, older } = await getAdjacentPosts(space, 'en', post.id);
+const base = spaceMeta(space).path;
+const { newer, older } = await getAdjacentPosts(space, post.id);
 const toLink = (p: typeof newer) =>
-  p ? { title: p.data.title, href: `${base}${stripVi(p.id)}/` } : undefined;
+  p ? { title: p.data.title, href: `${base}${p.id}/` } : undefined;
 ---
 <PostLayout {...post.data} space={space} prev={toLink(older)} next={toLink(newer)}>
   <Content />

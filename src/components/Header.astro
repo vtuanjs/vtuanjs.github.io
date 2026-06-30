@@ -1,39 +1,14 @@
 ---
 import { SITE } from '../consts';
-import { langFromPath, navItems, UI } from '../lib/i18n';
-
-interface Props {
-  // Counterpart URL in the other language. Posts pass this explicitly because
-  // their slugs differ between languages; static pages let us derive it.
-  altUrl?: string;
-  // When true, altUrl is a fallback (this page has no real translation), so
-  // the toggle confirms before navigating instead of redirecting silently.
-  altConfirm?: boolean;
-}
-const { altUrl, altConfirm } = Astro.props;
+import { navItems, UI } from '../lib/site';
 
 const path = Astro.url.pathname;
-const lang = langFromPath(path);
-const isVi = lang === 'vi';
-const t = UI[lang];
-
-const nav = navItems(lang);
-const homeHref = isVi ? '/vi/' : '/';
-
-// The toggle target: an explicit counterpart if given, otherwise the same
-// page with the /vi prefix added or stripped.
-const swapped = isVi ? path.replace(/^\/vi/, '') || '/' : `/vi${path}`;
-const enHref = isVi ? altUrl ?? swapped : path;
-const viHref = isVi ? path : altUrl ?? swapped;
-
-// Message shown when the target page has no real translation yet.
-const confirmAttr = altConfirm ? t.confirmSwitch : undefined;
-const cancelLabel = t.cancel;
-const okLabel = t.ok;
+const t = UI;
+const nav = navItems();
 ---
 <header class="site-header">
   <div class="site-header__inner">
-    <a class="site-title" href={homeHref}>{SITE.title}</a>
+    <a class="site-title" href="/">{SITE.title}</a>
     <nav class="site-nav">
       {nav.map((item) => (
         <a
@@ -42,17 +17,6 @@ const okLabel = t.ok;
         >{item.label}</a>
       ))}
       <button type="button" class="search-trigger" id="search-trigger" aria-label={t.search}>{t.search}</button>
-      <span class="lang-switch" aria-label="Language">
-        {isVi
-          ? <a href={enHref} data-confirm={confirmAttr}>EN</a>
-          : <span class="active" aria-current="true">EN</span>
-        }
-        <span class="sep">/</span>
-        {isVi
-          ? <span class="active" aria-current="true">VI</span>
-          : <a href={viHref} data-confirm={confirmAttr}>VI</a>
-        }
-      </span>
       <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark/light mode" title="Toggle dark/light mode">🌙</button>
     </nav>
   </div>
@@ -65,8 +29,7 @@ const okLabel = t.ok;
   role="dialog"
   aria-modal="true"
   aria-label={t.search}
-  data-index={isVi ? '/vi/search-index.json' : '/search-index.json'}
-  data-vi={isVi ? '1' : ''}
+  data-index="/search-index.json"
   data-no-results={t.searchNoResults}
 >
   <div class="search-modal__backdrop" data-search-close></div>
@@ -80,17 +43,6 @@ const okLabel = t.ok;
     />
     <p class="search-modal__status" id="search-status"></p>
     <ul class="post-list search-modal__results" id="search-results"></ul>
-  </div>
-</div>
-
-<div class="lang-modal" id="lang-modal" hidden role="dialog" aria-modal="true" aria-labelledby="lang-modal-msg">
-  <div class="lang-modal__backdrop" data-close></div>
-  <div class="lang-modal__box">
-    <p class="lang-modal__msg" id="lang-modal-msg"></p>
-    <div class="lang-modal__actions">
-      <button type="button" class="lang-modal__btn" data-close>{cancelLabel}</button>
-      <button type="button" class="lang-modal__btn lang-modal__btn--primary" id="lang-modal-ok">{okLabel}</button>
-    </div>
   </div>
 </div>
 
@@ -142,65 +94,6 @@ const okLabel = t.ok;
   .search-modal__results { margin: .5rem 0 0; }
   .search-modal__results:empty { display: none; }
   .search-modal__results .post-list-item:first-child { padding-top: .5rem; }
-
-  .lang-switch {
-    margin-left: 1.25rem;
-    font-size: 0.85rem;
-    color: var(--muted);
-  }
-  .lang-switch a { margin-left: 0; }
-  .lang-switch .active { color: var(--ink); font-weight: 600; }
-  .lang-switch .sep { margin: 0 0.2rem; opacity: 0.5; }
-
-  .lang-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-  .lang-modal[hidden] { display: none; }
-  .lang-modal__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(2px);
-  }
-  .lang-modal__box {
-    position: relative;
-    background: var(--bg);
-    color: var(--ink);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 1.5rem;
-    max-width: 26rem;
-    width: 100%;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-  }
-  .lang-modal__msg { margin: 0 0 1.25rem; line-height: 1.5; }
-  .lang-modal__actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.6rem;
-  }
-  .lang-modal__btn {
-    font: inherit;
-    cursor: pointer;
-    padding: 0.45rem 1rem;
-    border-radius: 6px;
-    border: 1px solid var(--line);
-    background: transparent;
-    color: var(--ink);
-  }
-  .lang-modal__btn:hover { border-color: var(--accent); color: var(--accent); }
-  .lang-modal__btn--primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-  .lang-modal__btn--primary:hover { opacity: 0.9; color: #fff; }
 </style>
 
 <script>
@@ -224,40 +117,6 @@ const okLabel = t.ok;
     apply(next);
   });
 
-  // Pages without a real translation fall back to a category page — confirm
-  // via an in-page modal so the language switch is never silent.
-  const modal = document.getElementById('lang-modal') as HTMLElement | null;
-  if (modal) {
-    const msgEl = document.getElementById('lang-modal-msg') as HTMLElement;
-    const okBtn = document.getElementById('lang-modal-ok') as HTMLButtonElement;
-    let pendingHref: string | null = null;
-    let lastFocused: HTMLElement | null = null;
-
-    const close = () => {
-      modal.hidden = true;
-      pendingHref = null;
-      lastFocused?.focus();
-    };
-    const open = (href: string, message: string, trigger: HTMLElement) => {
-      pendingHref = href;
-      lastFocused = trigger;
-      msgEl.textContent = message;
-      modal.hidden = false;
-      okBtn.focus();
-    };
-
-    document.querySelectorAll<HTMLAnchorElement>('.lang-switch a[data-confirm]').forEach((a) => {
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-        open(a.getAttribute('href') || '/', a.dataset.confirm || '', a);
-      });
-    });
-
-    okBtn.addEventListener('click', () => { if (pendingHref) window.location.href = pendingHref; });
-    modal.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', close));
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) close(); });
-  }
-
   // Search popup: live-filters a static JSON index fetched on first open.
   interface SearchEntry {
     title: string;
@@ -275,7 +134,6 @@ const okLabel = t.ok;
     const statusEl = document.getElementById('search-status') as HTMLElement;
     const resultsEl = document.getElementById('search-results') as HTMLUListElement;
     const indexUrl = searchModal.dataset.index || '/search-index.json';
-    const tagPrefix = searchModal.dataset.vi ? '/vi/' : '/';
     const noResults = searchModal.dataset.noResults || 'No results.';
 
     let index: SearchEntry[] | null = null;
@@ -320,7 +178,7 @@ const okLabel = t.ok;
             <a class="post-list-title" href="${e.url}">${esc(e.title)}</a>
             <span class="date">${e.date}</span>
             ${e.description ? `<p class="excerpt">${esc(e.description)}</p>` : ''}
-            ${e.tags.length ? `<div class="tag-list">${e.tags.map((tag) => `<a class="tag" href="${tagPrefix}${e.space}/tags/${tag}/">${esc(tag)}</a>`).join('')}</div>` : ''}
+            ${e.tags.length ? `<div class="tag-list">${e.tags.map((tag) => `<a class="tag" href="/${e.space}/tags/${tag}/">${esc(tag)}</a>`).join('')}</div>` : ''}
           </li>`,
         )
         .join('');

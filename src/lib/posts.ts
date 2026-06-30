@@ -1,8 +1,7 @@
 // Shared content-collection access. One place decides how posts are filtered
-// (by language and draft status) and ordered, so every page agrees.
+// (by draft status) and ordered, so every page agrees.
 import { getCollection } from 'astro:content';
 import type { SpaceId } from '../consts';
-import type { Lang } from './i18n';
 
 const byDateDesc = (a: { data: { date: Date } }, b: { data: { date: Date } }) =>
   b.data.date.valueOf() - a.data.date.valueOf();
@@ -13,9 +12,8 @@ interface LoadOptions {
   drafts?: boolean;
 }
 
-export async function loadPosts(space: SpaceId, lang: Lang, { drafts = false }: LoadOptions = {}) {
-  const wantVi = lang === 'vi';
-  let posts = (await getCollection(space)).filter((p) => (p.data.lang === 'vi') === wantVi);
+export async function loadPosts(space: SpaceId, { drafts = false }: LoadOptions = {}) {
+  let posts = await getCollection(space);
   if (!drafts) posts = posts.filter((p) => !p.data.draft);
   return posts.sort(byDateDesc);
 }
@@ -24,8 +22,8 @@ export async function loadPosts(space: SpaceId, lang: Lang, { drafts = false }: 
 // bottom of a post. Lists are sorted newest-first, so the newer post sits at a
 // lower index and the older post at a higher one. Drafts are excluded so we
 // never link a reader to an unpublished page.
-export async function getAdjacentPosts(space: SpaceId, lang: Lang, id: string) {
-  const posts = await loadPosts(space, lang);
+export async function getAdjacentPosts(space: SpaceId, id: string) {
+  const posts = await loadPosts(space);
   const i = posts.findIndex((p) => p.id === id);
   if (i === -1) return { newer: undefined, older: undefined };
   return {

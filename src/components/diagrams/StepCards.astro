@@ -1,0 +1,25 @@
+---
+// A grid of cards, each listing pass/fail steps with a closing note. Used to
+// show competing approaches that all end badly (tone defaults to "bad").
+import '../../styles/diagrams.css';
+
+interface Step { ok: boolean; text: string; }
+interface Card { title: string; steps: Step[]; note: string; tone?: 'bad' | 'good'; }
+interface Props { cards: Card[]; }
+const { cards } = Astro.props;
+---
+<div class="dw">
+  <div class="dw-grid">
+    {cards.map((card) => (
+      <div class:list={['dw-card', card.tone ?? 'bad']}>
+        <div class="dw-h">{card.title}</div>
+        <ul class="dw-steps">
+          {card.steps.map((step) => (
+            <li><span class:list={['dw-mark', step.ok ? 'ok' : 'fail']}></span>{step.text}</li>
+          ))}
+        </ul>
+        <div class="dw-note">{card.note}</div>
+      </div>
+    ))}
+  </div>
+</div>

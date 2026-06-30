@@ -1,17 +1,12 @@
 ---
-// The about page, rendered for either language. /about.astro and
-// /vi/about.astro are thin wrappers that just pick the `lang`.
+// The about page.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ContactList from './ContactList.astro';
-import { UI, type Lang } from '../lib/i18n';
+import { UI } from '../lib/site';
 
-interface Props {
-  lang: Lang;
-}
-const { lang } = Astro.props;
-const t = UI[lang].about;
+const t = UI.about;
 // The "what I do" body reuses the home page's lead paragraphs verbatim.
-const body = UI[lang].home.lead;
+const body = UI.home.lead;
 ---
 <BaseLayout title={t.title} description={t.description}>
   <article class="post">

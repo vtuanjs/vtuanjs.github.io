@@ -1,6 +1,6 @@
 import rss from '@astrojs/rss';
 import { SITE, SPACE_IDS } from '../../consts';
-import { spaceMeta } from '../../lib/i18n';
+import { spaceMeta } from '../../lib/site';
 import { loadPosts } from '../../lib/posts';
 
 export function getStaticPaths() {
@@ -9,8 +9,8 @@ export function getStaticPaths() {
 
 export async function GET({ params, site }) {
   const { space } = params;
-  const meta = spaceMeta(space, 'en');
-  const posts = await loadPosts(space, 'en');
+  const meta = spaceMeta(space);
+  const posts = await loadPosts(space);
   return rss({
     title: `${SITE.title} — ${meta.name}`,
     description: meta.blurb,

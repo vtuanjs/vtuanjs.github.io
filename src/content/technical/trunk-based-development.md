@@ -5,7 +5,6 @@ date: 2026-06-29
 author: Tuan Nguyen
 draft: false
 tags: ["git", "ci-cd", "feature-flags", "devops", "engineering-process"]
-vi_url: /vi/technical/trunk-based-development/
 ---
 
 Long-lived branches defer integration risk. By the time an 800-line branch merges, the author has lost context on both their own change and everything that moved under them on `develop`. The fix is not stricter branch hygiene — it's separating integration from release so there's no reason to hold a branch open.

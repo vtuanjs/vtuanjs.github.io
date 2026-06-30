@@ -5,7 +5,6 @@ date: 2026-07-02
 author: Tuan Nguyen
 draft: false
 tags: [iam, organization, architecture]
-vi_url: /vi/product/tao-organization-tu-dong-thiet-lap/
 # image: /og/org-creation-events.png
 ---
 

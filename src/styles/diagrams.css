@@ -1,0 +1,89 @@
+/* Shared styling for the in-post diagram components (src/components/diagrams/).
+   Namespaced `.dw-*`. Colours adapt to the site's light/dark tokens; the
+   success/failure greens and reds are fixed values that read on both themes. */
+.dw {
+  margin: 2rem 0;
+  font-size: .92rem;
+  line-height: 1.45;
+  --ok: #16a34a;
+  --fail: #dc2626;
+  --okbg: rgba(22, 163, 74, .1);
+  --failbg: rgba(220, 38, 38, .1);
+  --okln: rgba(22, 163, 74, .38);
+  --failln: rgba(220, 38, 38, .38);
+}
+:root[data-theme="dark"] .dw {
+  --ok: #34d399;
+  --fail: #f87171;
+  --okbg: rgba(52, 211, 153, .13);
+  --failbg: rgba(248, 113, 113, .13);
+  --okln: rgba(52, 211, 153, .42);
+  --failln: rgba(248, 113, 113, .42);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .dw {
+    --ok: #34d399;
+    --fail: #f87171;
+    --okbg: rgba(52, 211, 153, .13);
+    --failbg: rgba(248, 113, 113, .13);
+    --okln: rgba(52, 211, 153, .42);
+    --failln: rgba(248, 113, 113, .42);
+  }
+}
+
+/* check / cross marks, drawn in CSS so they stay monochrome (no emoji glyphs) */
+.dw-mark { display: inline-flex; width: 18px; height: 18px; border-radius: 50%; position: relative; flex: none; vertical-align: middle; }
+.dw-mark.ok { background: var(--ok); }
+.dw-mark.fail { background: var(--fail); }
+.dw-mark.ok::after { content: ""; position: absolute; left: 6px; top: 3px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.dw-mark.fail::before, .dw-mark.fail::after { content: ""; position: absolute; left: 8px; top: 4px; width: 2px; height: 10px; background: #fff; border-radius: 1px; }
+.dw-mark.fail::before { transform: rotate(45deg); }
+.dw-mark.fail::after { transform: rotate(-45deg); }
+
+/* flow panels: nodes joined by dashed wires, with a travelling packet */
+.dw-panel { display: flex; flex-direction: column; gap: .85rem; border: 1px solid var(--line); border-radius: 12px; padding: 1.2rem 1.1rem; background: var(--bg); }
+.dw-row { display: flex; align-items: center; gap: .6rem; }
+.dw-node { border: 1px solid var(--line); border-radius: 9px; padding: .5rem .7rem; font-weight: 600; display: flex; flex-direction: column; line-height: 1.15; background: var(--bg); flex: none; }
+.dw-node small { font-weight: 400; color: var(--muted); font-size: .72rem; margin-top: .15rem; }
+.dw-node.db, .dw-node.okn { border-color: var(--okln); background: var(--okbg); }
+.dw-node.broker { border-color: var(--failln); background: var(--failbg); }
+.dw-wire { position: relative; flex: 1; height: 2px; min-width: 54px; background: repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px); }
+.dw-wire.f { background: repeating-linear-gradient(90deg, var(--failln) 0 6px, transparent 6px 12px); }
+.dw-pkt { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%; margin-top: -5.5px; }
+.dw-pkt.ok { background: var(--ok); box-shadow: 0 0 9px var(--ok); left: 100%; }
+.dw-pkt.fail { background: var(--fail); box-shadow: 0 0 9px var(--fail); left: 55%; opacity: .18; }
+.dw-pkt.relay { background: var(--ok); box-shadow: 0 0 9px var(--ok); left: 0; opacity: 0; }
+.dw-caption { margin: .15rem 0 0; color: var(--muted); font-style: italic; text-align: center; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .dw-pkt.ok { animation: dw-ok 3.4s ease-in-out infinite; }
+  .dw-pkt.fail { animation: dw-fail 3.4s ease-in-out infinite; }
+  .dw-pkt.relay { animation: dw-relay 2.5s linear infinite; }
+}
+@keyframes dw-ok { 0% { left: 0; opacity: 0; } 10% { opacity: 1; } 68%, 100% { left: 100%; opacity: 1; } }
+@keyframes dw-fail { 0% { left: 0; opacity: 0; } 12% { opacity: 1; } 46% { left: 55%; opacity: 1; } 62%, 100% { left: 60%; opacity: 0; } }
+@keyframes dw-relay { 0% { left: 0; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+
+/* comparison / step cards */
+.dw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+@media (max-width: 560px) { .dw-grid { grid-template-columns: 1fr; } }
+.dw-card { border: 1px solid var(--line); border-radius: 12px; padding: 1rem 1.05rem; background: var(--bg); }
+.dw-card.bad { border-color: var(--failln); background: var(--failbg); }
+.dw-card.good { border-color: var(--okln); background: var(--okbg); }
+.dw-h { font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .84rem; margin-bottom: .65rem; }
+.dw-steps { list-style: none; margin: 0 0 .7rem; padding: 0; display: flex; flex-direction: column; gap: .45rem; }
+.dw-steps li { display: flex; align-items: center; gap: .5rem; }
+.dw-note { font-size: .85rem; color: var(--fail); font-weight: 600; border-top: 1px dashed var(--failln); padding-top: .55rem; }
+.dw-card.good .dw-note { color: var(--ok); border-color: var(--okln); }
+.dw-card p { margin: 0; }
+.dw-tag { display: inline-block; margin-top: .6rem; font-size: .75rem; font-weight: 700; border-radius: 999px; padding: .25rem .65rem; }
+.dw-tag.fail { background: var(--failbg); color: var(--fail); border: 1px solid var(--failln); }
+.dw-tag.ok { background: var(--okbg); color: var(--ok); border: 1px solid var(--okln); }
+
+/* transaction box for the outbox flow */
+.dw-tx { border: 1.5px dashed var(--accent); border-radius: 11px; padding: .95rem .9rem; position: relative; margin-top: .4rem; }
+.dw-tx-label { position: absolute; top: -.66rem; left: .8rem; background: var(--bg); padding: 0 .45rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); font-weight: 700; }
+.dw-tx-rows { display: flex; gap: .55rem; flex-wrap: wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .8rem; }
+.dw-tx-rows span { border: 1px solid var(--line); border-radius: 7px; padding: .4rem .6rem; background: var(--bg); }
+.dw-seal { margin-top: .7rem; text-align: center; font-weight: 700; color: var(--ok); background: var(--okbg); border: 1px solid var(--okln); border-radius: 8px; padding: .45rem; font-size: .8rem; }
+.dw-relay { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }

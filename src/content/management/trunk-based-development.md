@@ -5,7 +5,6 @@ date: 2026-06-29
 author: Tuan Nguyen
 draft: false
 tags: ["engineering-process", "team-dynamics", "release-management", "feature-flags"]
-vi_url: /vi/management/trunk-based-development/
 ---
 
 An engineer opens a PR after two weeks on a feature branch. The diff is 800 lines. Three reviewers groan. The review takes a day. Two other branches are already waiting to merge. The deploy holds its breath until someone manually checks nothing broke.

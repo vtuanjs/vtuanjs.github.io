@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import mdx from '@astrojs/mdx';
 
 // Turn ```mermaid fenced blocks into <pre class="mermaid"> with the raw
 // diagram source, so the client-side renderer (see BaseLayout) can draw them.
@@ -43,7 +44,7 @@ function rehypeMermaid() {
 export default defineConfig({
   site: 'https://vtuanjs.github.io',
   // base: '/blog', // uncomment + set this ONLY for a project site (repo != <username>.github.io)
-  integrations: [sitemap()],
+  integrations: [mdx(), sitemap()],
   markdown: {
     rehypePlugins: [rehypeMermaid],
   },

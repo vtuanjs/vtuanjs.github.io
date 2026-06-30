@@ -5,7 +5,6 @@ date: 2026-06-29
 author: Tuan Nguyen
 draft: false
 tags: [iam, authorization, architecture]
-vi_url: /vi/product/gioi-hieu-he-thong-iam/
 # image: /og/introduce-iam-system.png
 ---
 

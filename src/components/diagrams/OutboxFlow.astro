@@ -1,0 +1,38 @@
+---
+// A single transaction wrapping several writes and a commit seal, then a relay
+// reliably draining one packet to the broker (loops continuously).
+import '../../styles/diagrams.css';
+
+interface Props {
+  txLabel?: string;
+  rows?: string[];
+  seal?: string;
+  relayLabel?: string;
+  relayNote?: string;
+  brokerLabel?: string;
+  brokerNote?: string;
+}
+const {
+  txLabel = 'one transaction',
+  rows = ['INSERT order', 'INSERT outbox row'],
+  seal = 'COMMIT — both rows land, or neither does',
+  relayLabel = 'relay',
+  relayNote = 'polls the outbox',
+  brokerLabel = 'Broker',
+  brokerNote = 'every committed event, eventually',
+} = Astro.props;
+---
+<div class="dw">
+  <div class="dw-panel">
+    <div class="dw-tx">
+      <span class="dw-tx-label">{txLabel}</span>
+      <div class="dw-tx-rows">{rows.map((r) => <span>{r}</span>)}</div>
+      <div class="dw-seal">{seal}</div>
+    </div>
+    <div class="dw-relay">
+      <span class="dw-node okn">{relayLabel}<small>{relayNote}</small></span>
+      <span class="dw-wire"><span class="dw-pkt relay"></span></span>
+      <span class="dw-node okn">{brokerLabel}<small>{brokerNote}</small></span>
+    </div>
+  </div>
+</div>

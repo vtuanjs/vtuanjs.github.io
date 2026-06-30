@@ -5,8 +5,12 @@ date: 2026-06-28
 author: Tuan Nguyen
 draft: false
 tags: [distributed-systems, kafka, postgres, outbox-pattern]
-vi_url: /vi/technical/van-de-dual-write/
 ---
+
+import LostEventTimeline from '../../components/diagrams/LostEventTimeline.astro';
+import StepCards from '../../components/diagrams/StepCards.astro';
+import OutboxFlow from '../../components/diagrams/OutboxFlow.astro';
+import CompareCards from '../../components/diagrams/CompareCards.astro';
 
 > **Part 1 of 2.** Build the outbox by hand. In [Part 2](/technical/streaming-the-outbox-with-cdc/), change-data-capture replaces the relay.
 
@@ -18,17 +22,10 @@ The symptom was a customer email that never arrived. The order was in the databa
 | **Why** | They're two separate systems with no shared transaction. Nothing makes both succeed together. |
 | **Goal** | "Data saved" and "event published" become all-or-nothing — using only the DB we already trust. |
 
-```mermaid
-sequenceDiagram
-    participant App
-    participant DB
-    participant Broker
-    App->>DB: INSERT order
-    DB-->>App: COMMIT ok
-    App->>Broker: publish(event)
-    Broker--xApp: fails silently
-    Note over App,Broker: order exists, event lost
-```
+<LostEventTimeline
+  caption="No exception. No failed request. No line in any log."
+  label="The order commits to the database, but the published event is silently lost before it reaches the broker — no exception, no log."
+/>
 
 Here is what the code was told to do:
 
@@ -45,13 +42,26 @@ The commit and the publish are two independent operations against two independen
 
 The instinct is to move the publish *inside* the transaction so they "succeed together." It feels safer. It is not.
 
-```mermaid
-flowchart LR
-    A[publish then commit] --> A1[commit fails after publish → ghost event]
-    B[commit then publish] --> B1[publish fails after commit → lost event]
-    style A1 fill:#7f1d1d,color:#fff
-    style B1 fill:#7f1d1d,color:#fff
-```
+<StepCards
+  cards={[
+    {
+      title: 'publish → commit',
+      steps: [
+        { ok: true, text: 'publish(event) succeeds' },
+        { ok: false, text: 'commit fails' },
+      ],
+      note: 'ghost event — you announced an order that never existed, and a downstream service charges a card or reserves stock for a phantom',
+    },
+    {
+      title: 'commit → publish',
+      steps: [
+        { ok: true, text: 'commit succeeds' },
+        { ok: false, text: 'publish fails' },
+      ],
+      note: 'lost event — straight back to the original silent-loss bug',
+    },
+  ]}
+/>
 
 **No ordering of these two statements is atomic, because the broker has no idea your transaction exists.** Publish-then-commit and the commit fails? You've announced an order that doesn't exist — now a downstream service charges a card or reserves stock for a phantom. Commit-then-publish and the publish fails? You're back to the original silent-loss bug. There is no third ordering. You're trying to make two systems agree without anything that can hold them to the agreement.
 
@@ -69,16 +79,7 @@ So the real problem isn't "how do I do 2PC well." It's sharper than that: **how 
 
 Write the event into the *same database*, in the *same transaction*, as the data change. A separate process reads those rows later and publishes them. The database commit becomes the single fact that has to be true; publishing is downstream of a row that already exists.
 
-```mermaid
-flowchart LR
-    subgraph TX[one transaction]
-      O[INSERT order] --- E[INSERT outbox row]
-    end
-    TX --> C[COMMIT]
-    C --> R[relay polls outbox]
-    R --> P[publish to broker]
-    P --> M[mark row published]
-```
+<OutboxFlow />
 
 ```go
 tx, _ := db.Begin()
@@ -102,5 +103,22 @@ The outbox isn't free. The cost comes in three parts, and naming them is the poi
 The first one matters most. At-least-once isn't a flaw I'm tolerating — it's the *correct* default. The alternative, marking the row published *before* you publish, gives you at-most-once, which silently drops events: the exact bug we started with. But it pushes a hard requirement downstream: **every consumer must be idempotent.** If a duplicate "order placed" charges a card twice, you haven't solved your problem — you've moved it into someone else's service. (Its own post: idempotency keys and dedup windows.)
 
 I still reach for the outbox almost every time, because of *which* failure each side leaves you with. Without it: committed data, lost event, no error, nothing in the logs to trace. With it: an occasional duplicate, which a dedup key turns into a no-op. **I will take a duplicate I can dedupe over a silent drop I can't even detect, every single time.**
+
+<CompareCards
+  cards={[
+    {
+      tone: 'bad',
+      title: 'without the outbox',
+      text: 'Committed data, a lost event, no error, nothing in the logs to trace it.',
+      tag: "a silent drop you can't even detect",
+    },
+    {
+      tone: 'good',
+      title: 'with the outbox',
+      text: 'An occasional duplicate, which a dedup key turns into a no-op.',
+      tag: 'a duplicate you can dedupe away',
+    },
+  ]}
+/>
 
 That relay I write, run, and watch is the one cost I'd most like to delete. It turns out I can: the database already keeps a complete, ordered log of every commit — the write-ahead log. **[Part 2](/technical/streaming-the-outbox-with-cdc/) reads that log directly with Debezium, and the hand-written relay disappears** — in exchange for a different, sharper set of trade-offs.

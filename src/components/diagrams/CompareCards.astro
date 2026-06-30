@@ -1,0 +1,20 @@
+---
+// Side-by-side verdict cards: a "bad" tone vs a "good" tone, each with a short
+// body and a pill tag summarising the outcome.
+import '../../styles/diagrams.css';
+
+interface Card { tone: 'bad' | 'good'; title: string; text: string; tag: string; }
+interface Props { cards: Card[]; }
+const { cards } = Astro.props;
+---
+<div class="dw">
+  <div class="dw-grid">
+    {cards.map((card) => (
+      <div class:list={['dw-card', card.tone]}>
+        <div class="dw-h">{card.title}</div>
+        <p>{card.text}</p>
+        <span class:list={['dw-tag', card.tone === 'good' ? 'ok' : 'fail']}>{card.tag}</span>
+      </div>
+    ))}
+  </div>
+</div>

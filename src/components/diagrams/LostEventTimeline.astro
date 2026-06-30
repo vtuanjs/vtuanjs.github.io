@@ -1,0 +1,39 @@
+---
+// Two parallel tracks: one packet reaches its target and stays (success),
+// the other dissolves on the wire before arriving (silent loss).
+import '../../styles/diagrams.css';
+
+interface Props {
+  source?: string;
+  okNode?: string;
+  okNote?: string;
+  failNode?: string;
+  failNote?: string;
+  caption?: string;
+  label?: string; // accessible description of the whole figure
+}
+const {
+  source = 'App',
+  okNode = 'DB',
+  okNote = 'order committed',
+  failNode = 'Broker',
+  failNote = 'event never arrives',
+  caption,
+  label,
+} = Astro.props;
+---
+<div class="dw">
+  <div class="dw-panel" role="img" aria-label={label}>
+    <div class="dw-row">
+      <span class="dw-node">{source}</span>
+      <span class="dw-wire"><span class="dw-pkt ok"></span></span>
+      <span class="dw-node db">{okNode}<small>{okNote}</small></span>
+    </div>
+    <div class="dw-row">
+      <span class="dw-node">{source}</span>
+      <span class="dw-wire f"><span class="dw-pkt fail"></span></span>
+      <span class="dw-node broker">{failNode}<small>{failNote}</small></span>
+    </div>
+    {caption && <p class="dw-caption">{caption}</p>}
+  </div>
+</div>

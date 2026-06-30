@@ -5,7 +5,6 @@ date: 2026-06-28
 author: Tuan Nguyen
 draft: false
 tags: [distributed-systems, cdc, debezium, outbox-pattern]
-vi_url: /vi/technical/stream-outbox-bang-cdc/
 ---
 
 > **Part 2 of 2.** [Part 1](/technical/the-dual-write-problem/) built an outbox with a polling relay. Now we delete the relay.
