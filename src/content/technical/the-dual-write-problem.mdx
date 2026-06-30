@@ -90,6 +90,8 @@ tx.Commit() // both rows land, or neither does
 
 The whole trick lives in that single `Commit()`. The event and the data are now governed by **one** atomic operation: if the order saves, the event row exists; if the transaction rolls back, the event was never written. There is no window where one is true and the other isn't. The relay can then crash, get redeployed, run behind — and lose nothing, because unpublished rows simply sit in the table until something drains them. You've converted an unsolvable two-system problem into an ordinary one-table read, which is a problem databases are extremely good at.
 
+Working implementation (Go + Postgres): [github.com/vtuanjs/blog-demo/tree/main/outbox-polling](https://github.com/vtuanjs/blog-demo/tree/main/outbox-polling).
+
 ## The trade-off
 
 The outbox isn't free. The cost comes in three parts, and naming them is the point — a pattern whose costs you can't state precisely is one you don't understand yet.
