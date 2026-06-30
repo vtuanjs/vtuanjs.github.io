@@ -95,7 +95,11 @@ Flag accumulation is the main failure mode of this model. Teams adopt the flag d
 
 ## Hotfix flow
 
-Every production deployment auto-creates a hotfix branch pointing at exactly the deployed tag. When an incident hits, the entry point already exists — no scramble to figure out what's running in production.
+Every successful deploy to preprod or production creates a hotfix branch named after the deployed tag — `hotfixes/preprod/[tag]` and `hotfixes/prod/[tag]` — and stores those names in GitHub Actions variables (`HOTFIX_BRANCH_PREPROD`, `HOTFIX_BRANCH_PROD`). The branch name is derived from the tag's annotation message (`Branch: <branch-name>`), so when a hotfix itself gets deployed, post-deploy reads the annotation and resolves back to the original branch — the same branch is reused, not a new one per incident. A new branch is only created when a fresh release from `develop` is deployed.
+
+The CI pipeline watches for pushes to `hotfixes/**`: `hotfixes/preprod/*` triggers build and auto-deploy to preprod; `hotfixes/prod/*` triggers build only — production stays manual.
+
+This setup requires a `GetCurrentRelease` workflow action. Before cherry-picking, an engineer runs it to discover what's currently deployed: the action reads `HOTFIX_BRANCH_PREPROD` or `HOTFIX_BRANCH_PROD` from GitHub Actions variables and outputs the branch name along with the exact checkout and cherry-pick commands. Without this step there's no reliable way to know which hotfix branch to target — the variable is the single source of truth.
 
 **The fix always starts in `develop`, never the hotfix branch.** This is the invariant that cannot reverse under pressure.
 
@@ -106,24 +110,13 @@ Every production deployment auto-creates a hotfix branch pointing at exactly the
     { label: 'auto-deploy to staging' },
     { label: 'verify the fix' },
     { label: 'cherry-pick to hotfix branch' },
-    { label: 'deploy to production', tone: 'ok' },
+    { label: 'build hotfix artifact', note: 'tagged from hotfix branch' },
+    { label: 'deploy to production', note: 'manual trigger', tone: 'ok' },
   ]}
   caption="Reverse this — fix production first — and the next release from develop silently overwrites the fix."
 />
 
-The order that must not reverse under pressure: `develop` → verify on staging → cherry-pick to hotfix branch → deploy to production.
-
 If the fix goes to the hotfix branch first — the instinct under an incident — it exists only in the hotfix branch. When the next release from `develop` is promoted, the fix is overwritten. This is the most common hotfix failure mode, and it's hard to catch because the system looks correct immediately after the incident.
-
-**Hotfix branch structure for multiple environments:**
-
-If there's a preprod environment between staging and production, the hotfix chain extends:
-
-1. Fix lands in `develop` → auto-deploys to staging → verified
-2. Cherry-pick to `hotfixes/preprod/[tag]` → auto-deploys to preprod → verified
-3. Cherry-pick to `hotfixes/prod/[tag]` → manual trigger to production
-
-The preprod hotfix branch is created automatically when preprod is deployed, same as the prod one.
 
 ## Why not release branches
 
