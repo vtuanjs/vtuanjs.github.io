@@ -9,6 +9,7 @@ tags: [distributed-systems, cdc, debezium, outbox-pattern]
 
 import FlowChain from '../../components/diagrams/FlowChain.astro';
 import FanOut from '../../components/diagrams/FanOut.astro';
+import FieldMap from '../../components/diagrams/FieldMap.astro';
 
 > **Part 2 of 2.** [Part 1](/technical/the-dual-write-problem/) built an outbox with a polling relay. Now we delete the relay.
 
@@ -22,15 +23,17 @@ The polling relay from Part 1 works, but it does redundant work. I'm asking the 
 
 <FlowChain
   title="Part 1: polling relay"
+  segTime={0.9}
   nodes={[
     { label: 'outbox' },
-    { label: 'relay', note: 'SELECT on a timer' },
+    { label: 'relay', note: 'SELECT on a timer', dwell: 3 },
     { label: 'broker' },
   ]}
 />
 
 <FlowChain
   title="Part 2: CDC"
+  segTime={0.35}
   nodes={[
     { label: 'outbox' },
     { label: 'WAL', note: 'every commit, already ordered', tone: 'accent' },
@@ -79,14 +82,15 @@ CREATE TABLE outbox_events (
 
 The write path is identical to Part 1: one transaction, two inserts. Only the *reader* changes. Instead of my relay, a Debezium connector reads the WAL and runs the **outbox EventRouter** — a built-in transform that knows this table is an outbox, not a business table, and turns each inserted row into a properly addressed message.
 
-<FanOut
-  source={{ label: 'outbox row', note: 'one insert' }}
+<FieldMap
   title="EventRouter SMT"
-  targets={[
-    { label: 'topic', note: 'routed by aggregate_type', tone: 'ok' },
-    { label: 'message key', note: 'aggregate_id → same order, same partition', tone: 'ok' },
-    { label: 'message body', note: 'the payload you shaped', tone: 'ok' },
-    { label: 'headers', note: 'trace id, acting user', tone: 'accent' },
+  sourceLabel="outbox_events column"
+  targetLabel="Kafka message"
+  fields={[
+    { src: 'aggregate_type', dst: 'topic',   note: 'routed by EventRouter' },
+    { src: 'aggregate_id',   dst: 'key',     note: 'same aggregate → same partition' },
+    { src: 'payload',        dst: 'body',    note: 'the payload you shaped' },
+    { src: 'trace_id, user', dst: 'headers', note: 'out of the domain contract' },
   ]}
 />
 

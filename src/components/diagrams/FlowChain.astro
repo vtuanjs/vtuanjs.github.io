@@ -1,23 +1,92 @@
 ---
 // A linear flow of nodes joined by dashed wires, with a glowing packet that
-// streams left-to-right across the whole chain on loop. Generic replacement for
-// a `flowchart LR` — use when the point is "A leads to B leads to C".
+// travels segment-by-segment: each packet hits the next node before the following
+// segment fires. Nodes with `dwell` show a 3-2-1 countdown during their wait.
 import '../../styles/diagrams.css';
 
-interface Node { label: string; note?: string; tone?: 'ok' | 'fail' | 'accent' | 'plain'; }
-interface Props { nodes: Node[]; title?: string; caption?: string; }
-const { nodes, title, caption } = Astro.props;
+interface Node {
+  label: string;
+  note?: string;
+  tone?: 'ok' | 'fail' | 'accent' | 'plain';
+  dwell?: number; // extra pause in seconds at this intermediate node
+}
+interface Props { nodes: Node[]; title?: string; caption?: string; segTime?: number; }
+const { nodes, title, caption, segTime = 0.7 } = Astro.props;
 const toneClass = (t?: string) => (t === 'ok' ? 'okn' : t === 'fail' ? 'broker' : t === 'accent' ? 'accn' : '');
+
+const SEG = segTime;
+const N = nodes.length - 1;
+const uid = `fc${Math.random().toString(36).slice(2, 7)}`;
+
+// Compute when each segment fires
+const starts: number[] = [];
+let acc = 0;
+for (let i = 0; i < N; i++) {
+  starts.push(acc);
+  acc += SEG;
+  if (i + 1 < N && nodes[i + 1].dwell) acc += nodes[i + 1].dwell!;
+}
+const T = acc; // total cycle duration in seconds
+
+function p(s: number) { return (s / T * 100).toFixed(2); }
+
+let css = '';
+if (N > 0) {
+  // Override duration for all flow packets in this chain
+  css += `@media(prefers-reduced-motion:no-preference){#${uid} .dw-pkt.flow{animation-duration:${T}s}}\n`;
+
+  // Per-segment: unique keyframe + delay override
+  for (let i = 0; i < N; i++) {
+    const ap = (SEG / T) * 100;
+    const a = (ap * 0.08).toFixed(2);
+    const b = (ap * 0.92).toFixed(2);
+    const c = ap.toFixed(2);
+    css += `@keyframes ${uid}w${i}{0%{left:0;opacity:0}${a}%{left:0;opacity:1}${b}%{left:100%;opacity:1}${c}%{left:100%;opacity:0}100%{left:100%;opacity:0}}\n`;
+    css += `@media(prefers-reduced-motion:no-preference){#${uid} [data-seg="${i}"] .dw-pkt.flow{animation-name:${uid}w${i};animation-delay:${starts[i]}s}}\n`;
+  }
+
+  // Countdown digit animations for nodes with dwell
+  for (let i = 1; i < N; i++) {
+    const node = nodes[i];
+    if (!node.dwell) continue;
+    const arrival = starts[i - 1] + SEG;
+    const count = Math.round(node.dwell!);
+    const dd = node.dwell / count;
+    const fade = Math.min(0.1, dd * 0.15);
+    Array.from({ length: count }).forEach((_, k) => {
+      const s0 = arrival + k * dd;
+      const s1 = s0 + dd;
+      const p0 = p(s0);
+      const p1 = p(s0 + fade);
+      const p2 = p(s1 - fade);
+      const p3 = p(s1);
+      css += `@keyframes ${uid}cd${i}k${k}{0%{opacity:0}${p0}%{opacity:0}${p1}%{opacity:1}${p2}%{opacity:1}${p3}%{opacity:0}100%{opacity:0}}\n`;
+      css += `@media(prefers-reduced-motion:no-preference){#${uid} [data-cd-node="${i}"][data-cd-digit="${k}"]{animation:${uid}cd${i}k${k} ${T}s linear infinite}}\n`;
+    });
+  }
+}
 ---
-<div class="dw">
+<div class="dw" id={uid}>
   <div class="dw-panel">
     {title && <span class="dw-tx-label dw-inline-label">{title}</span>}
     <div class="dw-chain">
       {nodes.map((n, i) => (
         <>
-          <span class:list={['dw-node', toneClass(n.tone)]}>{n.label}{n.note && <small>{n.note}</small>}</span>
+          <span class:list={['dw-node', toneClass(n.tone)]}>
+            {n.label}
+            {n.note && <small>{n.note}</small>}
+            {n.dwell && i > 0 && i < nodes.length - 1 && (
+              <span class="dw-countdown" aria-hidden="true">
+                {Array.from({ length: Math.round(n.dwell) }, (_, k) => Math.round(n.dwell!) - k).map((v, k) => (
+                  <b data-cd-node={String(i)} data-cd-digit={String(k)}>{v}</b>
+                ))}
+              </span>
+            )}
+          </span>
           {i < nodes.length - 1 && (
-            <span class="dw-wire"><span class="dw-pkt flow" style={`animation-delay:${i * 0.5}s`}></span></span>
+            <span class="dw-wire" data-seg={String(i)}>
+              <span class="dw-pkt flow"></span>
+            </span>
           )}
         </>
       ))}
@@ -25,3 +94,5 @@ const toneClass = (t?: string) => (t === 'ok' ? 'okn' : t === 'fail' ? 'broker' 
     {caption && <p class="dw-caption">{caption}</p>}
   </div>
 </div>
+
+<Fragment set:html={`<style>${css}</style>`} />

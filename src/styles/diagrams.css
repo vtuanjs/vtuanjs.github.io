@@ -110,6 +110,10 @@
 /* FlowChain — linear flow that wraps on narrow screens */
 .dw-chain { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 
+/* countdown digits inside a dwell node — stacked in a grid so only one shows at a time */
+.dw-countdown { display: grid; place-items: center; height: 1.3em; margin-top: .12rem; }
+.dw-countdown b { grid-area: 1/1; font-size: .7rem; color: var(--accent); font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; opacity: 0; }
+
 /* FanOut — one source, several targets */
 .dw-fan { display: flex; align-items: center; gap: 1rem; }
 .dw-fan-src { align-self: center; }
@@ -171,3 +175,21 @@
 }
 @keyframes dw-knob-color { 0%, 42% { background: var(--fail); } 58%, 100% { background: var(--ok); } }
 .dw-toggle-panes { margin-top: .3rem; }
+
+/* FieldMap — left columns mapped to right fields via connecting arrows */
+.dw-fmap { display: flex; flex-direction: column; gap: .4rem; }
+.dw-fmap-heads { display: grid; grid-template-columns: 1fr 56px 1fr; margin-bottom: .1rem; }
+.dw-fmap-h { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); font-weight: 700; }
+.dw-fmap-row { display: grid; grid-template-columns: 1fr 56px 1fr; align-items: center; border-radius: 10px; padding: .15rem .1rem; }
+.dw-fmap-src { border: 1px solid var(--accln); border-radius: 8px; padding: .45rem .65rem; font-weight: 600; font-size: .85rem; background: var(--accbg); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.dw-fmap-dst { border: 1px solid var(--okln); border-radius: 8px; padding: .45rem .65rem; font-weight: 600; font-size: .85rem; background: var(--okbg); display: flex; flex-direction: column; }
+.dw-fmap-dst small { font-weight: 400; color: var(--muted); font-size: .72rem; margin-top: .12rem; }
+.dw-fmap-conn { position: relative; height: 2px; background: repeating-linear-gradient(90deg, var(--line) 0 5px, transparent 5px 9px); margin: 0 6px; }
+.dw-fmap-conn::after { content: ""; position: absolute; right: 1px; top: -4px; width: 7px; height: 7px; border-top: 2px solid var(--line); border-right: 2px solid var(--line); transform: rotate(45deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .dw-fmap-row { animation: dw-fmap-pulse calc(var(--n) * 1.3s) ease-in-out infinite; animation-delay: calc(var(--i) * 1.3s); }
+}
+@keyframes dw-fmap-pulse {
+  0%, 14% { background: var(--accbg); }
+  24%, 100% { background: transparent; }
+}

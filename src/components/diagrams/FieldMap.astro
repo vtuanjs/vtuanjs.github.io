@@ -1,0 +1,38 @@
+---
+// Two-column field mapping: source columns on the left connected by arrows to
+// destination fields on the right. Use for schema transforms, routing rules, or
+// any "this column becomes that field" relationship.
+import '../../styles/diagrams.css';
+
+interface Field { src: string; dst: string; note?: string; }
+interface Props {
+  title?: string;
+  sourceLabel: string;
+  targetLabel: string;
+  fields: Field[];
+}
+const { title, sourceLabel, targetLabel, fields } = Astro.props;
+const n = fields.length;
+---
+<div class="dw">
+  <div class="dw-panel">
+    {title && <span class="dw-tx-label dw-inline-label">{title}</span>}
+    <div class="dw-fmap">
+      <div class="dw-fmap-heads">
+        <div class="dw-fmap-h">{sourceLabel}</div>
+        <div></div>
+        <div class="dw-fmap-h">{targetLabel}</div>
+      </div>
+      {fields.map((f, i) => (
+        <div class="dw-fmap-row" style={`--i:${i};--n:${n}`}>
+          <div class="dw-fmap-src">{f.src}</div>
+          <div class="dw-fmap-conn"></div>
+          <div class="dw-fmap-dst">
+            {f.dst}
+            {f.note && <small>{f.note}</small>}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
