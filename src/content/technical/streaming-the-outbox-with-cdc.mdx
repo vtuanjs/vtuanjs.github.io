@@ -115,3 +115,15 @@ Only one cost is genuinely dangerous: the **replication slot**. A logical slot m
 The rest is operational overhead. You now run Kafka Connect — a cluster, a connector, a slot/publication (provisioned in Terraform), a dashboard — worth it across many streams, overkill for one. And it's still at-least-once: consumers must stay idempotent, exactly as in Part 1.
 
 Would I do it again? For a single low-volume stream, the polling relay from Part 1 is genuinely fine and I'd stop there — less to break, no slot to babysit. I reach for CDC when the relay stops being the simple part: many tables across many services, latency that actually matters to a user, or a polling loop whose own load on the database has become the problem. At that scale, deleting N hand-written relays to read the log the database already keeps is the better trade — **as long as someone is watching that slot.**
+
+## Working demo
+
+The full stack — Postgres, Kafka, Kafka Connect, Debezium 2.4, a Go order service, and a consumer — is at [github.com/vtuanjs/outbox](https://github.com/vtuanjs/outbox). Three commands get you to a live event flowing end-to-end:
+
+```sh
+make up                  # start Postgres + Kafka + Kafka Connect
+make register-connector  # POST debezium/connector.json to Connect
+make place-order         # write one order; watch the outbox row stream to Kafka
+```
+
+Two implementation details are worth pulling out. `docker-compose.yml` sets `max_slot_wal_keep_size=1GB` on Postgres — a hard cap on WAL retained for the slot. Without it, a stalled Debezium takes the whole database down; with it, Postgres invalidates the slot instead, turning a catastrophic failure into a recoverable one. The recovery path is `make connector-recover`: delete the connector (clears the stored offset), drop the invalidated slot, re-register — no stored offset triggers a fresh snapshot on restart. The second detail: the connector sets `publication.autocreate.mode=disabled` and relies on `002_debezium.sql` to create the publication and the heartbeat table before the connector is ever registered. The `snapshot.mode: never` constraint from the trade-off table above is enforced by migration order, not left to convention.

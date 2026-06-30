@@ -120,6 +120,10 @@ a:hover { text-decoration: underline; }
   border-radius: 4px;
 }
 .post-content img { max-width: 100%; height: auto; }
+.post-content table { border-collapse: collapse; width: 100%; }
+.post-content th, .post-content td { padding: .55rem .55rem; }
+.post-content th { border-bottom: 2px solid var(--line); }
+.post-content td { border-bottom: 1px solid var(--line); }
 
 /* Prev / next post navigation */
 .post-nav {
