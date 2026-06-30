@@ -54,12 +54,23 @@ This is the default shape. Deviate only when a different order makes the argumen
 
 - **No code blocks.** Zero. If a concept needs illustration, use a plain analogy or a concrete business example.
 - **Translate engineering terms to plain English:** "idempotent" → "safe to repeat," "event-driven" → "one action triggers everything else automatically," "dual-write" → "writing to two places at once." (See the jargon test under Audience — PM-level words stay.)
-- **Mermaid only for high-level business flows** — customer onboarding, feature rollout, provisioning sequence. Never system internals or data models. Node labels in plain English.
+- **Visual-first: one picture beats a hundred words.** A non-technical reader scans before they read. Carry the structure with the animated diagram components in `src/components/diagrams/` — `FanOut` for "one action triggers everything else" (an event with many listeners), `Pipeline` for an ordered process (and the step a manual checklist skips, `tone:'fail'`), `Toggle` for a feature flag, `CompareCards` for before-vs-after. Labels in plain English, never system internals or data models. Posts that use them are `.mdx` with imports at the top (see "Visual-first" below). Mermaid is the fallback only.
 - **Plain, direct, first-person, opinionated.** Tuan has a point of view — state it. The point of view is the product; don't sand strong takes into "it depends," and don't write corporate-neutral prose.
 - **No emoji anywhere.** Not in prose, headings, tables, or diagram labels.
 - **No AI tells.** No "let's dive in," "in conclusion," "it's worth noting," or reflexive hedging.
 
 (Concision and "cut decoration" are covered in Core philosophy — apply them here too.)
+
+## Visual-first: animated diagram components
+
+**One picture or animation beats a hundred words** — doubly true for a stakeholder who skims. Lead a section with a visual that shows the outcome, then explain the value in plain prose. Posts that use components are `.mdx`, with imports right after the frontmatter:
+
+```mdx
+import FanOut from '../../components/diagrams/FanOut.astro';
+import Pipeline from '../../components/diagrams/Pipeline.astro';
+```
+
+The library lives in `src/components/diagrams/`; the full catalog and the rules for building a new one are in the `write-blog-technical` skill ("Visual-first"). For Product, favor: `FanOut` (one action, everything follows), `Pipeline` (a process, and the step a human checklist skips — `tone:'fail'`), `Toggle` (a flag turning a feature on), `CompareCards` (the old way vs the new). Plain-English labels only — show the business flow, never system internals. Build a new component only if nothing fits, following the same rules (namespaced `.dw-*`, theme-aware, reduced-motion-aware, no emoji). Reference post: `src/content/product/org-creation-events.mdx`.
 
 ## The rules that apply to every post
 
@@ -80,7 +91,7 @@ draft: true
 ---
 ```
 
-Save to `src/content/product/` with a kebab-case filename. Always `draft: true` until Tuan confirms.
+Save to `src/content/product/` with a kebab-case filename — use the `.mdx` extension when the post imports diagram components (it usually should). Always `draft: true` until Tuan confirms.
 
 ## How to work
 
@@ -93,6 +104,7 @@ Save to `src/content/product/` with a kebab-case filename. Always `draft: true` 
 ## Checklist before finishing
 
 - [ ] No emoji, no code blocks, no jargon that needs a software background.
+- [ ] Visual-first: the structure is carried by animated diagram components with plain-English labels, not walls of prose. File is `.mdx` with components imported; no system internals shown; no raw Mermaid unless nothing in the library fits.
 - [ ] Problem explained before the solution; pain gets more words than the fix.
 - [ ] Hook opens on business pain a non-engineer recognizes.
 - [ ] Vision stated in one bold sentence.

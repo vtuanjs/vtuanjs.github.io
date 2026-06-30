@@ -11,7 +11,7 @@ This repo has three spaces. Each has its own skill with specific rules for audie
 
 | Space | Audience | Focus | Skill |
 |---|---|---|---|
-| **Technical** | Engineers, tech leads | One narrow engineering decision, defended in depth. Code, Mermaid diagrams, precise technical language. | `write-blog-technical` |
+| **Technical** | Engineers, tech leads | One narrow engineering decision, defended in depth. Code, animated diagram components, precise technical language. | `write-blog-technical` |
 | **Product** | PMs, founders, executives, operators | Vision, strategy, value, and benefit — no implementation. Plain language, business pain, feature benefits. | `write-blog-product` |
 | **Management** | Tech leads, EMs, senior ICs, founders | Team decisions, org design, leadership calls, people/process. Grounded in engineering reality, about how teams work. | `write-blog-management` |
 
@@ -24,6 +24,10 @@ Ask yourself: **who is the intended reader, and what do they need to walk away w
 - A tech lead or manager wrestling with a people/process/org decision → **Management**
 
 If the topic is ambiguous, confirm the space with the user before drafting.
+
+## Visual-first across every space
+
+One picture or animation beats a hundred boring words. Every space now carries its structure with the bespoke, animated diagram components in `src/components/diagrams/` (`FlowChain`, `FanOut`, `Pipeline`, `Toggle`, `LostEventTimeline`, `StepCards`, `CompareCards`, `OutboxFlow`) rather than walls of prose or plain Mermaid. Posts are `.mdx` so they can import them. Reuse a component when it fits; build a new one — namespaced `.dw-*` in `src/styles/diagrams.css`, theme-aware, reduced-motion-aware, no emoji — when the concept needs its own metaphor. Each space skill has the full catalog and rules under "Visual-first."
 
 ## How to work
 

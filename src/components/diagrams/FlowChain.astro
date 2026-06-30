@@ -1,0 +1,27 @@
+---
+// A linear flow of nodes joined by dashed wires, with a glowing packet that
+// streams left-to-right across the whole chain on loop. Generic replacement for
+// a `flowchart LR` — use when the point is "A leads to B leads to C".
+import '../../styles/diagrams.css';
+
+interface Node { label: string; note?: string; tone?: 'ok' | 'fail' | 'accent' | 'plain'; }
+interface Props { nodes: Node[]; title?: string; caption?: string; }
+const { nodes, title, caption } = Astro.props;
+const toneClass = (t?: string) => (t === 'ok' ? 'okn' : t === 'fail' ? 'broker' : t === 'accent' ? 'accn' : '');
+---
+<div class="dw">
+  <div class="dw-panel">
+    {title && <span class="dw-tx-label dw-inline-label">{title}</span>}
+    <div class="dw-chain">
+      {nodes.map((n, i) => (
+        <>
+          <span class:list={['dw-node', toneClass(n.tone)]}>{n.label}{n.note && <small>{n.note}</small>}</span>
+          {i < nodes.length - 1 && (
+            <span class="dw-wire"><span class="dw-pkt flow" style={`animation-delay:${i * 0.5}s`}></span></span>
+          )}
+        </>
+      ))}
+    </div>
+    {caption && <p class="dw-caption">{caption}</p>}
+  </div>
+</div>

@@ -84,7 +84,8 @@ Every post exists to help someone make one better management decision. If it doe
 
 ## Voice and language rules
 
-- **No code examples.** Management posts have zero programming code blocks — no functions, no commands, no config snippets. If a concept needs illustration, use a concrete scenario or a Mermaid diagram. Mermaid flowcharts and sequence diagrams are encouraged — they look professional and let a reader orient the full workflow in seconds. Use flowcharts for pipeline/process overviews, sequence diagrams for multi-party flows (branches, environments, teams). Every section that describes a non-trivial process should have one.
+- **No code examples.** Management posts have zero programming code blocks — no functions, no commands, no config snippets. If a concept needs illustration, use a concrete scenario or an animated diagram component.
+- **Visual-first: one picture beats a hundred words.** A non-trivial process should be carried by a visual a reader orients in seconds, not a paragraph they wade through. Use the animated components in `src/components/diagrams/` (see "Visual-first" below): `Pipeline` for an ordered flow and the step that must not reverse (`tone:'fail'` on the breaking step), `Toggle` for a release-control / flag decision, `FanOut` for one decision fanning to several outcomes, `CompareCards` for the old way vs the new. Mermaid is the fallback only. Plain-English labels — describe what happens, never how it's wired.
 - **No management clichés.** Cut: "it's all about trust," "fail fast," "psychological safety" (use it only if you're going to say something specific about it), "alignment," "bandwidth." If a phrase appears in every management book, replace it with what you actually mean.
 - **No frameworks as decoration.** Mention a framework (RACI, DACI, OKRs) only if Tuan has something specific to say about using or not using it. Don't name-drop to seem thorough.
 - **First-person, direct, opinionated.** Tuan has managed teams and made real calls. That experience is the authority — not citations or frameworks. Say what he did and why.
@@ -105,6 +106,17 @@ Rules:
 - **Tables carry comparison; prose carries reasoning.** A trade-off or option comparison becomes a table. The reasoning behind the table goes in prose below it.
 - **Tight prose.** Every sentence earns its place. No restating the same point twice for rhythm.
 - **Default to the shortest version, then cut again.** The first draft is always too long. Re-read each paragraph and delete every word that earns nothing — decoration, wind-up, restated points — but never cut the reasoning that proves the call.
+
+## Visual-first: animated diagram components
+
+**One picture or animation beats a hundred words.** Carry any non-trivial process with a visual a busy leader orients in seconds, then reason under it in prose. Posts that use components are `.mdx`, with imports after the frontmatter:
+
+```mdx
+import Pipeline from '../../components/diagrams/Pipeline.astro';
+import Toggle from '../../components/diagrams/Toggle.astro';
+```
+
+The library lives in `src/components/diagrams/`; the full catalog and the rules for building a new one are in the `write-blog-technical` skill ("Visual-first"). For Management, favor: `Pipeline` (an ordered flow, and the step that must not reverse — `tone:'fail'`), `Toggle` (a release-control / flag decision), `FanOut` (one decision fanning to several outcomes), `CompareCards` (the old way vs the new). Plain-English labels, no wiring detail. Build a new component only if nothing fits, following the same rules (namespaced `.dw-*`, theme-aware, reduced-motion-aware, no emoji). Reference post: `src/content/management/trunk-based-development.mdx`.
 
 ## The rules that apply to every post
 
@@ -128,7 +140,7 @@ draft: true
 - **`title`** — name the decision or the call, not the topic. "Promote from within vs. hire externally for a senior role" beats "Hiring decisions."
 - **`description`** — the one question this post answers.
 
-Save to `src/content/management/` with a kebab-case filename. Always `draft: true` until Tuan confirms.
+Save to `src/content/management/` with a kebab-case filename — use the `.mdx` extension when the post imports diagram components (it usually should). Always `draft: true` until Tuan confirms.
 
 ## How to work
 
@@ -141,7 +153,7 @@ Save to `src/content/management/` with a kebab-case filename. Always `draft: tru
 ## Checklist before finishing
 
 - [ ] No emoji anywhere.
-- [ ] No programming code blocks (functions, commands, config). Mermaid flowcharts and sequence diagrams encouraged for any non-trivial process.
+- [ ] No programming code blocks (functions, commands, config). Visual-first: any non-trivial process is carried by an animated diagram component, not prose. File is `.mdx` with components imported; no raw Mermaid unless nothing in the library fits.
 - [ ] No management clichés or framework name-drops without substance.
 - [ ] Hook is a concrete, recognizable situation — not an abstract premise.
 - [ ] Thesis stated in one bold sentence.

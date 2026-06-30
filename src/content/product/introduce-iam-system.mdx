@@ -8,7 +8,19 @@ tags: [iam, authorization, architecture]
 # image: /og/introduce-iam-system.png
 ---
 
+import FanOut from '../../components/diagrams/FanOut.astro';
+
 A customer is locked out of a feature they pay for. Support escalates to engineering. Both logs say the customer has access. No error, no recent change. You can't find the bug because every part of the product is keeping its own answer to "who is this customer and what can they do?" — and those answers drifted apart.
+
+<FanOut
+  source={{ label: 'Can this customer do X?' }}
+  targets={[
+    { label: 'Billing says yes', tone: 'fail' },
+    { label: 'Support says no', tone: 'fail' },
+    { label: 'The app says maybe', tone: 'fail' },
+  ]}
+  caption="Ask in three places, get three answers. That gap is the bug."
+/>
 
 **The fix is one system that owns these decisions, and one rule for everyone else: get the answer from there, never invent your own.**
 
@@ -29,6 +41,18 @@ The business cost compounds quickly. Support tickets increase. Engineering spend
 Centralizing these decisions doesn't add complexity. It removes the hidden complexity that was already there, spread across every team's codebase.
 
 ## The five pieces
+
+<FanOut
+  source={{ label: 'IAM', note: 'one owner of the answer' }}
+  targets={[
+    { label: 'Organization', note: 'one customer record', tone: 'accent' },
+    { label: 'User', note: 'who, and what they can do', tone: 'accent' },
+    { label: 'Feature flag', note: 'who sees what, when', tone: 'accent' },
+    { label: 'Config', note: 'each customer’s settings', tone: 'accent' },
+    { label: 'Rules', note: 'business logic, no deploy', tone: 'accent' },
+  ]}
+  caption="One system owns these decisions; every other part of the product reads from it."
+/>
 
 ### Organization — one customer record, everything else follows
 

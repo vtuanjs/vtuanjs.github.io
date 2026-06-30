@@ -7,6 +7,9 @@ draft: false
 tags: ["engineering-process", "team-dynamics", "release-management", "feature-flags"]
 ---
 
+import Toggle from '../../components/diagrams/Toggle.astro';
+import Pipeline from '../../components/diagrams/Pipeline.astro';
+
 An engineer opens a PR after two weeks on a feature branch. The diff is 800 lines. Three reviewers groan. The review takes a day. Two other branches are already waiting to merge. The deploy holds its breath until someone manually checks nothing broke.
 
 **The problem isn't that the branch got long. The problem is that the team confused "branch is merged" with "feature is released" — and let Git become the staging environment.**
@@ -37,14 +40,12 @@ Engineers merge continuously into a single branch (`develop`). Every merge is co
 
 Product decides when to flip the flag. That decision is independent of the engineering pipeline. A feature can be merged and integrated for weeks before product decides the moment is right to expose it. Marketing can align, legal can review, support can prepare — none of that blocks the engineering team from continuing to integrate.
 
-```mermaid
-flowchart TD
-    A[Engineering merges to develop] --> B[Flag off — users see old behavior]
-    B -->|product flips flag| C[Flag on — users see new behavior]
-
-    style B fill:#1e3a5f,color:#fff
-    style C fill:#14532d,color:#fff
-```
+<Toggle
+  flagName="release control"
+  offText="engineering has merged and integrated the feature, but users still see the old behavior"
+  onText="product flips the flag when the moment is right — independent of the engineering pipeline"
+  caption="Engineering owns integration; product owns release. The flag is the seam between them."
+/>
 
 Without this split, every merge is a potential release — which means engineers can't merge until the feature is complete, which means branches stay long, which means the cycle continues.
 
@@ -69,6 +70,15 @@ The common counter-objection: "That adds complexity." It does — one `if` state
 **CI reliability.** Trunk-based development only functions if merging is fast and the build is trustworthy. A flaky test suite that takes 40 minutes is a blocking problem here — it's the gate every engineer hits multiple times a day. One flaky test that causes retries will generate pressure to skip CI, which collapses the entire model. CI health is infrastructure investment, not engineering vanity.
 
 **Hotfix discipline.** Under incident pressure, teams revert to intuition. The intuition is wrong: they fix production first, then (maybe) backport. The correct order is `develop` first, verify on staging, then cherry-pick to production. If the team skips `develop`, the fix lives only in production and gets lost when the next release overwrites it. Watch for this during postmortems.
+
+<Pipeline
+  steps={[
+    { label: 'fix in develop', note: 'always first', tone: 'accent' },
+    { label: 'verify on staging' },
+    { label: 'cherry-pick to production', tone: 'ok' },
+  ]}
+  caption="Fix production first and the next release silently overwrites the fix — the most common hotfix failure."
+/>
 
 ## The cultural shift
 

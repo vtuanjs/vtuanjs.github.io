@@ -1,0 +1,40 @@
+---
+// A feature-flag switch that animates off -> on on a loop, with the inactive
+// side dimmed. Shows that one flag, not a branch or a deploy, controls which
+// behavior users see. Use for release control / feature-flag posts.
+import '../../styles/diagrams.css';
+
+interface Props {
+  flagName?: string;
+  offTitle?: string;
+  offText: string;
+  onTitle?: string;
+  onText: string;
+  caption?: string;
+}
+const {
+  flagName = 'feature flag',
+  offTitle = 'flag off',
+  offText,
+  onTitle = 'flag on',
+  onText,
+  caption,
+} = Astro.props;
+---
+<div class="dw">
+  <div class="dw-panel">
+    <div class="dw-toggle-bar">
+      <span class="dw-tag fail dw-tg-side off">{offTitle}</span>
+      <span class="dw-switch" role="img" aria-label={`${flagName}: ${offTitle} shows ${offText}; ${onTitle} shows ${onText}`}>
+        <span class="dw-switch-label">{flagName}</span>
+        <span class="dw-switch-track"><span class="dw-switch-knob"></span></span>
+      </span>
+      <span class="dw-tag ok dw-tg-side on">{onTitle}</span>
+    </div>
+    <div class="dw-grid dw-toggle-panes">
+      <div class="dw-card bad dw-pane off"><div class="dw-h">{offTitle}</div><p>{offText}</p></div>
+      <div class="dw-card good dw-pane on"><div class="dw-h">{onTitle}</div><p>{onText}</p></div>
+    </div>
+    {caption && <p class="dw-caption">{caption}</p>}
+  </div>
+</div>

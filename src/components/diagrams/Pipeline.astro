@@ -1,0 +1,27 @@
+---
+// Ordered, numbered steps with a highlight that sweeps through them in sequence,
+// so the eye follows the order the steps must run in. Optional phase grouping
+// (e.g. automated vs manual). Mark a step tone: 'fail' to flag the place a flow
+// breaks. Use for pipelines, release flows, and "this order must not reverse".
+import '../../styles/diagrams.css';
+
+interface Step { label: string; note?: string; tone?: 'ok' | 'fail' | 'accent' | 'plain'; }
+interface Props { steps: Step[]; title?: string; caption?: string; }
+const { steps, title, caption } = Astro.props;
+const tone = (t?: string) => (t === 'fail' ? 'fail' : t === 'ok' ? 'ok' : t === 'accent' ? 'acc' : '');
+const total = steps.length;
+---
+<div class="dw">
+  <div class="dw-panel">
+    {title && <span class="dw-tx-label dw-inline-label">{title}</span>}
+    <ol class="dw-pipe">
+      {steps.map((s, i) => (
+        <li class:list={['dw-pstep', tone(s.tone)]} style={`--i:${i};--n:${total}`}>
+          <span class="dw-pnum">{i + 1}</span>
+          <span class="dw-ptext">{s.label}{s.note && <small>{s.note}</small>}</span>
+        </li>
+      ))}
+    </ol>
+    {caption && <p class="dw-caption">{caption}</p>}
+  </div>
+</div>

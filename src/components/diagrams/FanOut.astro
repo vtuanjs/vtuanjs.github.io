@@ -1,0 +1,38 @@
+---
+// One source node fanning out to several targets, with a packet streaming from
+// the source to each target on loop. Use for "one event, many listeners",
+// routing, or one input branching into several outcomes (set tone: 'fail' for
+// failure fans).
+import '../../styles/diagrams.css';
+
+interface Target { label: string; note?: string; tone?: 'ok' | 'fail' | 'accent' | 'plain'; }
+interface Props {
+  source: { label: string; note?: string };
+  targets: Target[];
+  title?: string;
+  caption?: string;
+}
+const { source, targets, title, caption } = Astro.props;
+const toneNode = (t?: string) => (t === 'ok' ? 'okn' : t === 'fail' ? 'broker' : t === 'accent' ? 'accn' : '');
+const tonePkt = (t?: string) => (t === 'fail' ? 'fail' : t === 'ok' ? 'ok' : '');
+const toneWire = (t?: string) => (t === 'fail' ? 'f' : '');
+---
+<div class="dw">
+  <div class="dw-panel">
+    {title && <span class="dw-tx-label dw-inline-label">{title}</span>}
+    <div class="dw-fan">
+      <span class="dw-node accn dw-fan-src">{source.label}{source.note && <small>{source.note}</small>}</span>
+      <div class="dw-fan-targets">
+        {targets.map((t, i) => (
+          <div class="dw-fan-row">
+            <span class:list={['dw-wire', toneWire(t.tone)]}>
+              <span class:list={['dw-pkt', 'flow', tonePkt(t.tone)]} style={`animation-delay:${i * 0.28}s`}></span>
+            </span>
+            <span class:list={['dw-node', toneNode(t.tone)]}>{t.label}{t.note && <small>{t.note}</small>}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    {caption && <p class="dw-caption">{caption}</p>}
+  </div>
+</div>

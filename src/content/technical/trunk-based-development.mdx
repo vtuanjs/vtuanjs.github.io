@@ -7,6 +7,9 @@ draft: false
 tags: ["git", "ci-cd", "feature-flags", "devops", "engineering-process"]
 ---
 
+import Pipeline from '../../components/diagrams/Pipeline.astro';
+import Toggle from '../../components/diagrams/Toggle.astro';
+
 Long-lived branches defer integration risk. By the time an 800-line branch merges, the author has lost context on both their own change and everything that moved under them on `develop`. The fix is not stricter branch hygiene — it's separating integration from release so there's no reason to hold a branch open.
 
 **The core invariant: `develop` is always deployable. Whether something is released is controlled by flags, not branch state.**
@@ -32,25 +35,26 @@ Every merge to `develop` triggers a pipeline with these steps, in order:
 3. **Build affected apps** — produces the artifacts tagged in step 1.
 4. **Auto-deploy to staging** — staging always reflects the latest `develop`. No manual trigger, no coordination, no "did you deploy yet?"
 
-```mermaid
-flowchart TD
-    subgraph auto["Automated — every merge to develop"]
-        direction LR
-        PR[PR merged] --> Tag[tag commit]
-        Tag --> Diff[detect changed apps]
-        Diff --> Build[build affected apps]
-        Build --> Staging[auto-deploy to staging]
-    end
+<Pipeline
+  title="Automated — every merge to develop"
+  steps={[
+    { label: 'PR merged' },
+    { label: 'tag commit', note: 'deterministic version' },
+    { label: 'detect changed apps', note: 'diff vs previous tag' },
+    { label: 'build affected apps' },
+    { label: 'auto-deploy to staging', tone: 'ok' },
+  ]}
+/>
 
-    subgraph manual["Manual — production release"]
-        direction LR
-        Pick[pick a tag] --> Gate[validate: tag ≥ current prod]
-        Gate --> Prod[deploy to production]
-        Prod --> HB[auto-create hotfix branch]
-    end
-
-    auto --> manual
-```
+<Pipeline
+  title="Manual — production release"
+  steps={[
+    { label: 'pick a tag' },
+    { label: 'validate', note: 'tag ≥ current prod', tone: 'accent' },
+    { label: 'deploy to production', tone: 'ok' },
+    { label: 'auto-create hotfix branch' },
+  ]}
+/>
 
 The production promotion is always manual — someone picks a tag from `develop` and triggers the deployment workflow. This is the deliberate gate between "integrated" and "released."
 
@@ -75,6 +79,12 @@ return legacyCheckoutFlow(cart);
 
 The flag is the release control, not the branch. An engineer can merge a half-built checkout flow on day one, keep merging incremental changes daily, and users see nothing until the flag is flipped. No branch accumulates. No conflict builds up.
 
+<Toggle
+  flagName="new-checkout-flow"
+  offText="users get the legacy checkout — the half-built flow is merged but dark"
+  onText="product flips one flag, users get the new checkout — no deploy, no branch merge"
+/>
+
 **Flag discipline has three rules:**
 
 1. **Name flags for the feature, not the implementation.** `new-checkout-flow` not `use-stripe-v3`. The flag guards a user-facing behavior, and the name should match what product controls.
@@ -89,31 +99,17 @@ Every production deployment auto-creates a hotfix branch pointing at exactly the
 
 **The fix always starts in `develop`, never the hotfix branch.** This is the invariant that cannot reverse under pressure.
 
-```mermaid
-sequenceDiagram
-    box Branches
-    participant DB as develop
-    participant HB as hotfixes/prod/[tag]
-    end
-    box Environments
-    participant SE as staging
-    participant PE as production
-    end
-
-    Note over DB,PE: normal release
-    DB->>SE: merge → tag → auto-deploy staging
-    SE-->>PE: manually promote tag to production
-    PE->>HB: auto-create hotfixes/prod/[tag]
-
-    Note over PE: incident detected
-    DB->>DB: merge fix to develop
-    DB->>SE: auto-deploy to staging
-    SE->>SE: verify fix
-    DB->>HB: cherry-pick commit
-    HB->>HB: push → build only, no auto-deploy
-    HB-->>PE: manually deploy new tag to production
-    PE->>HB: auto-create hotfixes/prod/[new-tag]
-```
+<Pipeline
+  title="Hotfix order that must not reverse"
+  steps={[
+    { label: 'merge fix to develop', note: 'always starts here', tone: 'accent' },
+    { label: 'auto-deploy to staging' },
+    { label: 'verify the fix' },
+    { label: 'cherry-pick to hotfix branch' },
+    { label: 'deploy to production', tone: 'ok' },
+  ]}
+  caption="Reverse this — fix production first — and the next release from develop silently overwrites the fix."
+/>
 
 The order that must not reverse under pressure: `develop` → verify on staging → cherry-pick to hotfix branch → deploy to production.
 

@@ -11,6 +11,10 @@ Tuan is a senior/expert sharing deep knowledge with authority. **Depth is the pr
 
 Diagrams/tables carry structure, prose carries depth (the visual is the entry point, not a replacement). Mermaid for sequences/flows/decisions; color failure nodes red (`fill:#7f1d1d`). Front-load each section's takeaway in bold, then expand. Baked into the `write-blog` skill. Don't over-trim — gutting depth removes the expertise signal.
 
+## Visual-first — one picture beats a hundred boring words
+
+Mỗi post phải tải cấu trúc của nó bằng *hình ảnh động*, không phải tường chữ. Một diagram chuyển động cho người đọc nắm được cơ chế của hệ thống trước cả khi họ đọc một câu — đó là layer scan mạnh nhất. Dùng các component bespoke, có animation trong `src/components/diagrams/` (`FlowChain`, `FanOut`, `Pipeline`, `Toggle`, `LostEventTimeline`, `StepCards`, `CompareCards`, `OutboxFlow`); tái sử dụng khi vừa, dựng component mới khi một quyết định cần ẩn dụ hình ảnh riêng. Mọi component: CSS namespaced `.dw-*` trong `src/styles/diagrams.css`, theme-aware, reduced-motion-aware, không emoji (vẽ mark bằng CSS, tô node fail màu đỏ), và animation phải minh hoạ *cơ chế* chứ không trang trí. Post là `.mdx` để import được component. Mermaid chỉ còn là fallback. Đây là về *cách trình bày chiều sâu*, không thay thế chiều sâu — prose vẫn mang reasoning bên dưới mỗi hình. Baked into the `write-blog` skills; reference post `src/content/technical/the-dual-write-problem.mdx`.
+
 ## Tight prose — readers are lazy
 
 Người đọc rất lười: họ bỏ đi trước khi chạm tới chiều sâu nếu phải lội qua chữ thừa. Mỗi câu phải đáng giá. Không wind-up dài dòng, không lặp lại một ý hai lần để lấy nhịp, không diễn đạt lê thê khi một câu ngắn nói được điều đó. Test: nếu bỏ một câu/mệnh đề mà không mất *ý* nào thì bỏ. Đây là chuyện *độ dài câu chữ*, không phải chiều sâu — nói mỗi ý một lần, sắc, rồi đi tiếp; không bao giờ cắt reasoning. Baked into `write-blog`.

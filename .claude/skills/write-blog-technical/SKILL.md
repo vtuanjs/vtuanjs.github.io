@@ -1,6 +1,6 @@
 ---
 name: write-blog-technical
-description: Draft a new Technical space blog post — one narrow engineering decision, defended in depth with precise language, code, and Mermaid diagrams. Use when writing to src/content/technical/.
+description: Draft a new Technical space blog post — one narrow engineering decision, defended in depth with precise language, code, and custom animated diagram components. Use when writing to src/content/technical/.
 ---
 
 # Write a Technical blog post
@@ -34,7 +34,7 @@ If a claim can't be restated as a property that's true or false under a named co
 
 Every Technical post follows this arc. Drop a section if the post is better without it, but earn the omission.
 
-1. **Hook** — the specific moment the problem showed up. Ideally a Mermaid diagram of the failure state. Concrete, not "imagine you have a system that…"
+1. **Hook** — the specific moment the problem showed up. Ideally an animated diagram component of the failure state (see "Visual-first" below). Concrete, not "imagine you have a system that…"
 
 2. **Problem / Why / Goal table** — right after the hook:
 
@@ -46,11 +46,11 @@ Every Technical post follows this arc. Drop a section if the post is better with
 | **Goal** | What "solved" looks like — the engineering outcome. |
 ```
 
-3. **The naive answer** — what most engineers reach for first, and what breaks. Show the failure with a Mermaid flow if it helps.
+3. **The naive answer** — what most engineers reach for first, and what breaks. Show the failure with a diagram component (a `FanOut` of red failure outcomes, `StepCards` of approaches that all end badly) if it helps.
 
 4. **The real problem** — the constraint that makes it genuinely hard. Go deep here. This is where a senior take separates from a tutorial.
 
-5. **My answer** — the decision, as a diagram + a minimal code snippet, with the reasoning underneath.
+5. **My answer** — the decision, as an animated diagram component + a minimal code snippet, with the reasoning underneath.
 
 6. **Why not the runner-up** — the senior reader already discarded the naive answer; they're comparing your choice against *their* second-best (Outbox vs 2PC, schema-per-tenant vs `tenant_id`, polling vs CDC). Name that alternative and say why you didn't take it. This is the most interesting part of the post — don't skip it.
 
@@ -73,12 +73,54 @@ Every post serves two readers: the scanner and the one who stays.
 If a section doesn't touch at least a couple of these, it's still a tutorial.
 
 Rules:
-- **Diagrams carry structure; prose carries depth.** A flow/sequence becomes a Mermaid diagram — then the prose goes deep on the why beneath it. The visual is the entry point, not a replacement.
-- **Reach for Mermaid when the decision involves control flow, ordering, ownership, or system boundaries** — not by default. A diagram that only restates one sentence is noise; a table or plain prose is often enough (e.g. "role IDs vs role names in the token" needs a table, not a flowchart). When you do draw one, color failure nodes red: `style X fill:#7f1d1d,color:#fff`.
+- **Diagrams carry structure; prose carries depth.** A flow/sequence/state becomes an animated diagram component — then the prose goes deep on the why beneath it. The visual is the entry point, not a replacement. One picture or animation beats a hundred words of setup; lead with it, then defend the decision in prose.
+- **Reach for a diagram when the decision involves control flow, ordering, ownership, or system boundaries** — not by default. A diagram that only restates one sentence is noise; a table or plain prose is often enough (e.g. "role IDs vs role names in the token" needs a table, not a flow). See "Visual-first" below for the component library.
 - **Front-load the takeaway.** Lead each section with the conclusion in bold, then expand. Progressive disclosure, not omission.
 - **Length follows coverage, not a cap.** Write as much as it takes to fully exhaust the *why*. Cut padding; never cut reasoning.
 - **Tight prose.** Every sentence earns its place. No restating the same point twice for rhythm. If a clause can go without losing an idea, it goes.
 - **Default to the shortest version, then cut again.** The first draft is always too long. Re-read each paragraph and delete every word that earns nothing — but never cut reasoning. This trims length (decoration, wind-up, restated points), not depth.
+
+## Visual-first: animated diagram components
+
+**One picture or animation beats a hundred boring words.** Readers scan; a moving diagram lands the structure of a system before they read a sentence. Every Technical post is an `.mdx` file that imports bespoke, animated diagram components — not walls of prose, and not plain Mermaid by default. The reference post is `src/content/technical/the-dual-write-problem.mdx`.
+
+**Posts are `.mdx`.** Import components at the top, right after the frontmatter:
+
+```mdx
+import FanOut from '../../components/diagrams/FanOut.astro';
+import Pipeline from '../../components/diagrams/Pipeline.astro';
+```
+
+### The component library (`src/components/diagrams/`)
+
+Reuse one of these whenever the concept fits. Each is theme-aware, reduced-motion-aware, no emoji, with `.dw-*` CSS in `src/styles/diagrams.css`.
+
+| Component | Use it for | Shape |
+|---|---|---|
+| `FlowChain` | "A leads to B leads to C" | linear nodes, a packet streams across; `nodes=[{label, note?, tone?}]` |
+| `FanOut` | one source → many targets: an event with many listeners, routing, or one input branching to several **failure** outcomes | `source={{label,note?}}`, `targets=[{label,note?,tone?}]` |
+| `Pipeline` | ordered steps, release flows, "this order must not reverse" | numbered steps, highlight sweeps through; mark the breaking step `tone:'fail'` |
+| `Toggle` | a feature flag / release control switching off→on | animated switch + dimmed inactive side |
+| `LostEventTimeline` | success vs silent-loss, two parallel tracks | one packet arrives, one dissolves |
+| `StepCards` | competing approaches that all end badly | pass/fail steps + a closing note per card |
+| `CompareCards` | a bad-vs-good verdict | two cards, tone + pill tag |
+| `OutboxFlow` | a transaction wrapping writes + a relay draining | bespoke, post-specific — a model for new ones |
+
+Tones are `'ok'` (green), `'fail'` (red), `'accent'` (blue), or omitted (plain). Color failure red — it's a comprehension aid, not an emoji.
+
+### Build a new component when nothing fits
+
+The bespoke visual *is* the wow. When a decision needs its own metaphor, build a new `.astro` component in `src/components/diagrams/` rather than forcing it into an existing one. Non-negotiable rules, so a new component matches the rest:
+
+- **Namespace CSS `.dw-*` in `src/styles/diagrams.css`** — reuse the existing primitives (`.dw-node`, `.dw-wire`, `.dw-pkt`, `.dw-panel`, `.dw-card`) and tokens (`--ok`, `--fail`, `--accent`, `--line`, `--bg`, `--muted`).
+- **Theme-aware** — only those tokens for color, never hard-coded hex that breaks in dark mode.
+- **Reduced-motion-aware** — gate every animation behind `@media (prefers-reduced-motion: no-preference)` and leave a sensible static resting state for `prefers-reduced-motion: reduce`.
+- **No emoji** — draw marks in CSS (`.dw-mark.ok/.fail`), color nodes by tone.
+- **Animate the concept, not decoration** — the motion should illustrate the mechanism (a packet traveling and being lost, a commit sealing, a flag flipping), not spin for its own sake.
+
+### When Mermaid is still acceptable
+
+Mermaid is the fallback, not the default. Reach for it only for a one-off standard flow/sequence that genuinely doesn't warrant a bespoke component and that no library component covers. Even then, prefer a component. If you do use Mermaid, color failure nodes red: `style X fill:#7f1d1d,color:#fff`.
 
 ## Snippet discipline
 
@@ -111,7 +153,7 @@ draft: true
 - **`title`** — name the decision, not the topic. "Putting role IDs (not role names) in the token" beats "Token design."
 - **`description`** — the one question this post answers. A reader should know in one line whether it's for them.
 
-Save to `src/content/technical/`. Always `draft: true` until Tuan confirms.
+Save to `src/content/technical/` as a `.mdx` file (so it can import diagram components). Always `draft: true` until Tuan confirms.
 
 ## How to work
 
@@ -133,6 +175,8 @@ Save to `src/content/technical/`. Always `draft: true` until Tuan confirms.
 - [ ] Exactly one narrow decision; the constraint that forced it is explicit.
 - [ ] Depth answers the invariant / assumption / failure-mode / cost / reversal questions, not just length.
 - [ ] Problem/Why/Goal table present and crisp.
+- [ ] Visual-first: the structure is carried by animated diagram components, not walls of prose; each section's gist is scannable in seconds. File is `.mdx` with components imported.
+- [ ] Any new component is namespaced `.dw-*`, theme-aware, reduced-motion-aware, no emoji, animating the mechanism (not decoration). No raw Mermaid unless nothing in the library fits.
 - [ ] Naive answer addressed — and the runner-up alternative explicitly rejected with a reason.
 - [ ] Trade-off section names a real cost and when he'd choose differently.
 - [ ] Every snippet ≤20 lines, generic names, no real paths or domain terms.

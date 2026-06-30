@@ -30,15 +30,17 @@ This is an [Astro](https://astro.build) static site deployed to GitHub Pages at 
 - `src/pages/{product,technical}/[...slug].astro` — individual post pages
 - `src/pages/{product,technical}/rss.xml.js` — RSS feeds
 
+**In-post diagrams:** Posts carry their structure with bespoke, animated diagram components in `src/components/diagrams/` (`FlowChain`, `FanOut`, `Pipeline`, `Toggle`, `LostEventTimeline`, `StepCards`, `CompareCards`, `OutboxFlow`), styled by namespaced `.dw-*` CSS in `src/styles/diagrams.css`. They are theme-aware (use the global `--ok/--fail/--accent/--line/--bg/--muted` tokens), reduced-motion-aware (animation gated behind `@media (prefers-reduced-motion: no-preference)`), and emoji-free (marks drawn in CSS). Importing them requires a post to be `.mdx`. Prefer these over Mermaid; Mermaid is the fallback. The reference post is `src/content/technical/the-dual-write-problem.mdx`.
+
 **Layouts:** `BaseLayout.astro` wraps every page (Header + Footer + global CSS slot). `PostLayout.astro` extends it with post metadata rendering and is used by the `[...slug].astro` pages.
 
 **Drafts:** Posts with `draft: true` in frontmatter are excluded from list pages and RSS feeds (filter is applied in the index and RSS pages).
 
 ## Adding a post
 
-Create a `.md` or `.mdx` file in `src/content/product/` or `src/content/technical/`:
+Create a file in `src/content/product/`, `src/content/technical/`, or `src/content/management/`. Use `.mdx` (not `.md`) so the post can import diagram components — visual-first is the house style:
 
-```yaml
+```mdx
 ---
 title: "Post title"
 description: "One-line SEO summary."
@@ -47,6 +49,8 @@ author: Tuan Nguyen
 # image: /og/my-post.png   # optional OG image (place file in public/og/)
 # draft: true
 ---
+
+import FanOut from '../../components/diagrams/FanOut.astro';
 ```
 
 ## Deploy

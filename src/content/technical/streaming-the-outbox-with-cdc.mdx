@@ -7,6 +7,9 @@ draft: false
 tags: [distributed-systems, cdc, debezium, outbox-pattern]
 ---
 
+import FlowChain from '../../components/diagrams/FlowChain.astro';
+import FanOut from '../../components/diagrams/FanOut.astro';
+
 > **Part 2 of 2.** [Part 1](/technical/the-dual-write-problem/) built an outbox with a polling relay. Now we delete the relay.
 
 The polling relay from Part 1 works, but it does redundant work. I'm asking the database "anything new?" on a timer, when the database already knew the answer the instant the row committed. Every commit is appended to the **write-ahead log**: an ordered, durable record of every change, the same log Postgres uses for replication and crash recovery. My relay was re-deriving, slower and more crudely, a log the database already maintains.
@@ -17,17 +20,24 @@ The polling relay from Part 1 works, but it does redundant work. I'm asking the 
 | **Why** | Polling re-derives, on a timer, a log Postgres *already* keeps perfectly: the write-ahead log (WAL). |
 | **Goal** | Publish straight from the WAL and delete the relay — without leaking our table schema to consumers. |
 
-```mermaid
-flowchart LR
-    subgraph OLD[Part 1: polling relay]
-      A1[outbox] -->|SELECT on a timer| R1[relay] --> B1[broker]
-    end
-    subgraph NEW[Part 2: CDC]
-      A2[outbox] --> W[WAL] -->|stream| D[Debezium] --> B2[broker]
-    end
-    style OLD fill:#1f2937,color:#fff
-    style NEW fill:#064e3b,color:#fff
-```
+<FlowChain
+  title="Part 1: polling relay"
+  nodes={[
+    { label: 'outbox' },
+    { label: 'relay', note: 'SELECT on a timer' },
+    { label: 'broker' },
+  ]}
+/>
+
+<FlowChain
+  title="Part 2: CDC"
+  nodes={[
+    { label: 'outbox' },
+    { label: 'WAL', note: 'every commit, already ordered', tone: 'accent' },
+    { label: 'Debezium', note: 'streams the log', tone: 'accent' },
+    { label: 'broker', tone: 'ok' },
+  ]}
+/>
 
 Change-data-capture taps that log directly. Debezium connects as a logical replication client — the same interface a Postgres read-replica uses — reads the WAL, and emits a message for every committed change. No polling loop, no relay process, and the latency collapses from "poll interval" to "however fast the WAL streams," which is effectively real time.
 
@@ -35,15 +45,14 @@ Change-data-capture taps that log directly. Debezium connects as a logical repli
 
 The tempting move is to delete the outbox table entirely. Why keep it? Just stream changes off the `orders` table directly — the row change *is* the event. This is the same category of mistake as Part 1's "publish inside the transaction": it conflates two things that look alike and aren't.
 
-```mermaid
-flowchart TD
-    R[raw CDC off the orders table] --> X1[consumers couple to your table schema]
-    R --> X2[background UPDATEs leak as bogus events]
-    R --> X3[one fat row — can't tell placed from cancelled]
-    style X1 fill:#7f1d1d,color:#fff
-    style X2 fill:#7f1d1d,color:#fff
-    style X3 fill:#7f1d1d,color:#fff
-```
+<FanOut
+  source={{ label: 'raw CDC off the orders table' }}
+  targets={[
+    { label: 'consumers couple to your table schema', tone: 'fail' },
+    { label: 'background UPDATEs leak as bogus events', tone: 'fail' },
+    { label: "one fat row — can't tell placed from cancelled", tone: 'fail' },
+  ]}
+/>
 
 Raw CDC off a business table publishes whatever happened to the row, with no notion of what you *meant*:
 
@@ -70,14 +79,16 @@ CREATE TABLE outbox_events (
 
 The write path is identical to Part 1: one transaction, two inserts. Only the *reader* changes. Instead of my relay, a Debezium connector reads the WAL and runs the **outbox EventRouter** — a built-in transform that knows this table is an outbox, not a business table, and turns each inserted row into a properly addressed message.
 
-```mermaid
-flowchart LR
-    O[outbox row] --> ER{EventRouter SMT}
-    ER -->|route by aggregate_type| T[topic]
-    ER -->|key by aggregate_id| K[same order → same partition]
-    ER -->|payload| V[message body]
-    ER -->|trace id, acting user| H[headers]
-```
+<FanOut
+  source={{ label: 'outbox row', note: 'one insert' }}
+  title="EventRouter SMT"
+  targets={[
+    { label: 'topic', note: 'routed by aggregate_type', tone: 'ok' },
+    { label: 'message key', note: 'aggregate_id → same order, same partition', tone: 'ok' },
+    { label: 'message body', note: 'the payload you shaped', tone: 'ok' },
+    { label: 'headers', note: 'trace id, acting user', tone: 'accent' },
+  ]}
+/>
 
 This does what my relay did, and more, declaratively. It routes each row to a topic by `aggregate_type`, sets the message key from `aggregate_id` so every event for one order lands on the same partition (which is how you preserve per-order ordering in Kafka), and ships `payload` as the body. Crucially, **only inserts into *this* table become events** — so the schema-coupling and accidental-event problems from the naive approach are gone by construction. Consumers see the payload I deliberately shaped, never my physical schema.
 
