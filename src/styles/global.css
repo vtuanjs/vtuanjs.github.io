@@ -75,7 +75,25 @@ a:hover { text-decoration: underline; }
 
 /* Post lists */
 .post-list { list-style: none; padding: 0; }
-.post-list-item { padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.post-list-item {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.4s ease calc(var(--stagger, 0) * 60ms),
+              transform 0.4s ease calc(var(--stagger, 0) * 60ms);
+}
+.post-list-item.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .post-list-item {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
 .post-list-title { font-size: 1.15rem; font-weight: 600; }
 .date { color: var(--muted); font-size: .85rem; margin-left: .5rem; }
 .post-count { color: var(--muted); font-weight: 400; font-size: .75em; }

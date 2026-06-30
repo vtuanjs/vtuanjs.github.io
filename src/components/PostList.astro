@@ -11,8 +11,8 @@ const { posts, space } = Astro.props;
 const base = spaceMeta(space).path;
 ---
 <ul class="post-list">
-  {posts.map((post) => (
-    <li class="post-list-item">
+  {posts.map((post, i) => (
+    <li class="post-list-item" style={`--stagger:${i}`}>
       <a class="post-list-title" href={`${base}${post.id}/`}>{post.data.title}</a>
       <span class="date">{formatDate(post.data.date)}</span>
       {post.data.description && <p class="excerpt">{post.data.description}</p>}
@@ -26,3 +26,14 @@ const base = spaceMeta(space).path;
     </li>
   ))}
 </ul>
+
+<script>
+  const items = document.querySelectorAll<HTMLElement>('.post-list-item');
+  if (items.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) { (e.target as HTMLElement).classList.add('is-visible'); observer.unobserve(e.target); } }),
+      { threshold: 0.1 }
+    );
+    items.forEach((el) => observer.observe(el));
+  }
+</script>
