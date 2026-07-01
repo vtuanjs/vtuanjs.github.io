@@ -30,7 +30,9 @@ sqlc type-checks a query against your schema at generation time: write `nam` ins
   caption="All three leave sqlc's compile-time check, or explode combinatorially inside it."
 />
 
-An ORM's query builder type-checks against Go structs, not the schema — a hallucinated column compiles cleanly and fails only when the query runs. A hand-built SQL string has the same problem plus no guarantee the AI bound `$1` instead of interpolating a value. Enumerating one static query per filter combination stays inside sqlc, but the query count doubles per filter — four filters is sixteen near-duplicate `WHERE` clauses to keep synchronized, which is its own failure surface.
+- **ORM query builder.** Type-checks against Go structs, not the schema — a hallucinated column compiles cleanly and fails only when the query runs.
+- **Hand-built SQL string.** Same problem, plus no guarantee the AI bound `$1` instead of interpolating a value.
+- **One static query per filter combination.** Stays inside sqlc, but the query count doubles per filter — four filters is sixteen near-duplicate `WHERE` clauses to keep synchronized, which is its own failure surface.
 
 ## My answer: annotate the branch, let sqlc keep checking the SQL
 
@@ -59,7 +61,12 @@ ORDER BY
 LIMIT @page_limit OFFSET @page_offset;
 ```
 
-`status` is a one-line predicate gated by an annotation on its own line above it. `location_ids` gates an entire multi-line `EXISTS` block the same way — the annotation isn't limited to the next token, it covers the clause until the next annotation. `is_active` shows the other form: the annotation trails the line it gates. `order_by_created_at_asc`/`_desc` aren't bound to any column — each is a flag-only param, and the trailing `TRUE` keeps the `ORDER BY` syntactically valid when neither fires. `sqlc generate` type-checks all of it exactly as if these were five static queries; a typo'd column fails the same way it would with no annotations at all. What changes is the generated signature:
+- **`status`** — a one-line predicate gated by an annotation on its own line above it.
+- **`location_ids`** — gates an entire multi-line `EXISTS` block the same way; the annotation isn't limited to the next token, it covers the clause until the next annotation.
+- **`is_active`** — the other form: the annotation trails the line it gates.
+- **`order_by_created_at_asc`/`_desc`** — not bound to any column, each is a flag-only param; the trailing `TRUE` keeps the `ORDER BY` syntactically valid when neither fires.
+
+`sqlc generate` type-checks all of it exactly as if these were five static queries; a typo'd column fails the same way it would with no annotations at all. What changes is the generated signature:
 
 ```go
 type ListOrdersParams struct {

@@ -33,6 +33,10 @@ Every post needs Tuan's own imprint — "When I worked in...", "I once shipped..
 
 One picture or animation beats a hundred boring words. Every space now carries its structure with the bespoke, animated diagram components in `src/components/diagrams/` (`FlowChain`, `FanOut`, `Pipeline`, `Toggle`, `LostEventTimeline`, `StepCards`, `CompareCards`, `OutboxFlow`) rather than walls of prose or plain Mermaid. Posts are `.mdx` so they can import them. Reuse a component when it fits; build a new one — namespaced `.dw-*` in `src/styles/diagrams.css`, theme-aware, reduced-motion-aware, no emoji — when the concept needs its own metaphor. Each space skill has the full catalog and rules under "Visual-first."
 
+## Format across every space — no paper walls
+
+Tuan does not want posts that read like a paper. Every space defaults to lists, tables, and code/labeled fragments over multi-sentence paragraph blocks — any time a section states 2+ parallel items, ordered steps, named rules, or a before/after, that's a list or table, not prose. Bold the key term/verdict at the start of the line. Paragraphs stay for connective *why* reasoning only, one or two sentences at a time. Full rule and checklist item under "Format inside sections" in each space skill.
+
 ## How to work
 
 1. Identify or confirm the space with the user.

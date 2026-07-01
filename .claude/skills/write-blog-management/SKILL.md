@@ -100,6 +100,15 @@ Every post exists to help someone make one better management decision. If it doe
 - **No emoji anywhere.** Not in prose, headings, tables, or labels.
 - **No AI tells.** No "let's explore," "it's important to note," "in conclusion," reflexive hedging.
 
+## Format inside sections — no paper walls
+
+Tuan does not want posts that read like a paper. Within any section, default to lists, tables, or short bolded fragments over multi-sentence paragraph blocks:
+
+- **Any time you're stating 2+ parallel costs, sequenced moves, named rules, or a before/after — that's a list or table, never a paragraph.**
+- **Bold the key call/verdict at the start of the line**, not buried mid-sentence.
+- A paragraph is still right for connective reasoning — one or two sentences explaining *why*, not a container for enumerable ideas.
+- **Tell:** if a paragraph has an em-dash chain and 3+ enumerable ideas stacked in it, split it into bullets.
+
 ## Layered depth — write for two readers
 
 Same rule as every space: serve both the scanner and the one who stays.
@@ -175,5 +184,6 @@ Save to `src/content/management/` with a kebab-case filename — use the `.mdx` 
 - [ ] Trade-off table names the failure mode, not just the cost.
 - [ ] Closing is one decision the reader can act on tomorrow — not a summary.
 - [ ] Tight prose: no point restated twice, no clause that can go without losing an idea.
+- [ ] No paper walls: parallel costs/steps/rules/before-after are lists or tables, not paragraphs; key calls bolded at line start.
 - [ ] Nothing identifies the real team, company, or individuals.
 - [ ] Frontmatter complete including `tags` (reused from existing posts where they match), saved to `src/content/management/`, `draft: true`.

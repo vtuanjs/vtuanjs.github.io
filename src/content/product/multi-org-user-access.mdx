@@ -7,10 +7,12 @@ draft: false
 tags: [iam, authorization, multi-tenancy]
 ---
 
+import { Image } from 'astro:assets';
 import FanOut from '../../components/diagrams/FanOut.astro';
 import CompareCards from '../../components/diagrams/CompareCards.astro';
+import iamUser from '../../assets/images/iam-user.png';
 
-We have 3PL operators using our platform — one person, one login, working across several client warehouses. In one client's organization they're set up as a full operator: they can adjust stock, close orders, manage the warehouse. In another client's organization, the same person is only supposed to look things up — check a shipment, see a status — nothing else. Same login, same day, two different jobs depending on whose warehouse they're standing in. The first time this came up, the honest answer to "what can this person do?" was: it depends which client you're asking about. Our access model didn't have a place to hold two different answers for one person.
+We have 3PL operators using our platform — one person, one login, working across several client warehouses. In one client's organization they're a full operator: adjust stock, close orders, manage the warehouse. In another, they're view-only — check a shipment, see a status, nothing else. Same login, same day, two different jobs depending on whose warehouse they're standing in. The first time this came up, the honest answer to "what can this person do?" was: it depends which client you're asking about. Our access model had no place to hold two different answers for one person.
 
 **A person's access should never be one fixed role — it should be computed fresh for whichever organization they're currently working in.**
 
@@ -24,13 +26,22 @@ This is part 3 of the series on our identity system. Part 1 introduced the five 
 
 ## Why it matters
 
-If access is one role on the account, the first person who legitimately needs different permissions in two organizations breaks the model. Teams patch around it: a note in a spreadsheet, a manual override, a support ticket every time someone's access needs to differ by client. None of that scales past a handful of exceptions, and every one of them is a support burden and a security risk — someone with more access than they should have in an organization they shouldn't have touched.
+**If access is one role on the account, the first person who legitimately needs different permissions in two organizations breaks the model.** Teams patch around it:
 
-It also blocks a whole category of customer we want to serve. 3PL operators, agencies, and partner staff are exactly the people who work across multiple client organizations with a different level of trust in each. If the platform can't express "operator here, viewer there" for one login, those customers either don't fit the product, or they get a workaround that quietly under- or over-shares access until someone notices.
+- A note in a spreadsheet.
+- A manual override.
+- A support ticket every time someone's access needs to differ by client.
+
+None of that scales past a handful of exceptions. Every one is a support burden and a security risk — someone with more access than they should have, in an organization they shouldn't have touched.
+
+**It also blocks a whole category of customer:** 3PL operators, agencies, partner staff — people who work across multiple client organizations at a different trust level in each. If the platform can't express "operator here, viewer there" for one login, those customers either don't fit the product, or get a workaround that quietly under- or over-shares access until someone notices.
 
 ## Two questions, not one
 
-**"What can this person do" is actually two separate questions, and they don't have the same answer.** One is company-wide: is this person internal staff, a support operator, or a regular customer? That doesn't change no matter which client organization they're currently working in. The other is per-organization: within this specific client's organization, are they a full operator, a manager, view-only, or not a member at all? That answer is meaningless without saying which organization you mean.
+**"What can this person do" is actually two separate questions, and they don't have the same answer:**
+
+- **Company-wide standing — "who is this person to us?"** Our employee, our support agent, or an outside customer. Fixed for that person, everywhere, regardless of which client's warehouse they're currently in.
+- **Per-organization role — "what can they do in this specific warehouse?"** Full operator, manager, view-only, or not a member at all. Meaningless on its own — it only means something once you name the organization.
 
 <FanOut
   source={{ label: 'One person, one login' }}
@@ -42,17 +53,25 @@ It also blocks a whole category of customer we want to serve. 3PL operators, age
   caption="One account, one company-wide standing, and a separate role in each organization it belongs to. None of these three answers substitutes for another."
 />
 
-Collapsing these into one role forces one question to answer for the other. Either the person's real, day-to-day trust in a specific client's warehouse gets flattened to match whatever their account-level role says, or the account-level role gets stretched to try to cover per-client differences it was never meant to hold. Both produce access that's wrong somewhere.
+Collapsing these into one role forces one question to answer for the other: either day-to-day trust in a specific warehouse gets flattened to match the account-level role, or the account-level role gets stretched to cover per-client differences it was never meant to hold. Both produce access that's wrong somewhere.
 
 ## The organization membership is where per-client truth lives
 
-**The moment a person joins a client's organization, that relationship needs its own record — not a flag bolted onto the person, not a flag bolted onto the client.** That membership is where the real, changeable facts live: which role they have in this specific organization, whether they've been disabled from it, whether they're the main point of contact for it. A person can be an active, full operator in one client's organization and a disabled, view-only member in another, at the same moment, and nothing about one membership should leak into how the other is read.
+**The moment a person joins a client's organization, that relationship needs its own record** — not a flag bolted onto the person, not a flag bolted onto the client. The membership holds the real, changeable facts:
 
-This also cleanly separates two flows people conflate: adding an existing platform user to a new client organization, versus inviting someone who has never used the platform at all. Both end with a membership record. Only one of them starts with creating the person in the first place.
+- Which role they have in this specific organization.
+- Whether they've been disabled from it.
+- Whether they're the main point of contact for it.
+
+<Image src={iamUser} alt="Users list in IAM Admin showing name, email, role, activated and locked status" />
+
+A person can be an active, full operator in one client's organization and a disabled, view-only member in another, at the same moment — nothing about one membership leaks into how the other is read.
+
+This also separates two flows people conflate: adding an existing platform user to a new client organization, versus inviting someone who has never used the platform at all. Both end with a membership record. Only one starts with creating the person in the first place.
 
 ## Compute access for one organization at a time
 
-**When the system checks what someone can do, it should only ever be computing the answer for the one organization the request is actually about — never all of a person's organizations at once.** In practice, this means the moment someone switches which client's organization they're working in, the platform recomputes their permissions for that organization alone. Their access to every other organization they belong to sits untouched, unread, in the background.
+**The system should only ever compute access for the one organization a request is actually about — never all of a person's organizations at once.** The moment someone switches clients, the platform recomputes their permissions for that organization alone. Access to every other organization they belong to sits untouched, unread, in the background.
 
 <CompareCards
   cards={[
@@ -61,7 +80,7 @@ This also cleanly separates two flows people conflate: adding an existing platfo
   ]}
 />
 
-This isn't just tidier — it caps the damage of the worst case. If a session or a credential is ever compromised, the person carrying it can only act as far as the one organization it was scoped to, not every client organization the account happens to belong to. And because recomputing access for the currently active organization is cheap, this costs nothing at the point someone switches which client they're working in.
+**This isn't just tidier — it caps the damage of the worst case.** A compromised session or credential can only act as far as the one organization it was scoped to, not every client organization the account belongs to. And because recomputing access for the active organization is cheap, switching clients costs nothing.
 
 ## The trade-off
 
@@ -74,8 +93,8 @@ This isn't just tidier — it caps the damage of the worst case. If a session or
 | Switching which client you're working in | n/a | Access recomputed for that client, instantly |
 | What it costs to build | Nothing extra | A membership record per person-per-org, and an explicit "which organization is this request about" on every check |
 
-The cost is a genuine piece of plumbing: a membership record for every person-organization pair, and every access check has to know which organization it's about before it can answer. That's more to build than one role on an account. But the one-role model doesn't actually avoid this cost — it just defers it to the first partner, agency, or 3PL operator who needs different access in different clients, at which point it shows up as a support ticket and a manual workaround instead of a designed feature.
+**The cost is genuine plumbing:** a membership record per person-organization pair, and every access check has to know which organization it's about before it can answer. That's more to build than one role on an account. But the one-role model doesn't avoid the cost — it defers it to the first partner, agency, or 3PL operator who needs different access in different clients, where it shows up as a support ticket and a manual workaround instead of a designed feature.
 
-One more honest limit worth stating up front: disabling someone from an organization doesn't cut off a permission that's already been computed and handed to them mid-session — it takes effect the next time their access is recomputed, which happens quickly but isn't instant. For anything urgent enough that instant matters, that has to be a separate, explicit "cut this person off right now" action, not something the normal refresh cycle is expected to cover.
+**One honest limit:** disabling someone from an organization doesn't cut off a permission already computed and handed to them mid-session — it takes effect on the next recompute, which is fast but not instant. Anything urgent enough that instant matters needs a separate, explicit "cut this person off right now" action, not the normal refresh cycle.
 
 Part 4 goes to the next piece: feature flags, and why we roll new features out to specific customers before turning them on for everyone.

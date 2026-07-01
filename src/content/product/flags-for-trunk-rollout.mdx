@@ -8,7 +8,9 @@ image: /images/iam-feature-flag.png
 tags: [iam, feature-flags, trunk-based-development]
 ---
 
+import { Image } from 'astro:assets';
 import Toggle from '../../components/diagrams/Toggle.astro';
+import iamFeatureFlag from '../../assets/images/iam-feature-flag.png';
 
 On an enterprise LMS I worked on — teachers running lessons, students submitting work — the contract forbade breaking the service, and it named the only windows a release could happen in. We still wanted to test in staging and preprod the day code was ready. So a merge could no longer mean a release. A feature flag is what splits the two apart. (A different system from the identity posts on this blog, which were built git-based.)
 
@@ -26,7 +28,7 @@ Trunk-based development needs this: engineering merges continuously, but the con
 
 ## Why it matters
 
-A contract that names the exact times a release is allowed makes the stakes explicit: a break outside those terms isn't a bad week, it's a broken promise. That forces the question early — there's no slack in the calendar to absorb a surprise found the night before a release window. The only way to move fast without gambling on the release date is to make "tested in a production-like environment" and "visible to the customer" two separate events, decided by two different people, at two different times.
+**A contract that names the exact release windows makes the stakes explicit:** a break outside those terms isn't a bad week, it's a broken promise. There's no slack in the calendar to absorb a surprise found the night before a release. The only way to move fast without gambling on the release date is to split "tested in a production-like environment" from "visible to the customer" — two separate events, decided by two different people, at two different times.
 
 ## Ship it dark, release it on purpose
 
@@ -45,6 +47,8 @@ While the flag is off, the code runs in production, dormant, next to everything 
 
 **Benefit:** the team ships every day without every day being a release event for the business.
 
+<Image src={iamFeatureFlag} alt="Feature Flags list showing key, name, description, toggle status, mode, and organization count" />
+
 ## The trade-off
 
 | | Wait until finished, release to everyone | Ship dark, release on the contract window |
@@ -53,7 +57,7 @@ While the flag is off, the code runs in production, dormant, next to everything 
 | Undoing a mistake | A new release, a wait, a public rollback | A switch flipped, in effect within minutes |
 | What it costs | Integration pain, high-stakes launches | Discipline to remove flags once released |
 
-The cost lands on engineering, not the customer: every flag is code that has to be maintained until someone actually removes it. Skip that discipline and the codebase fills up with switches nobody remembers the purpose of. That's a cost paid in cleanup, on your own schedule. The alternative — a broken contract discovered by the customer — isn't.
+**The cost lands on engineering, not the customer:** every flag is code that has to be maintained until someone actually removes it. Skip that discipline and the codebase fills up with switches nobody remembers the purpose of. That's a cost paid in cleanup, on your own schedule. The alternative — a broken contract discovered by the customer — isn't.
 
 ## What's next
 

@@ -110,7 +110,10 @@ CDC deletes the relay, but not the cost — it swaps a problem I understood for 
 | **You now run Kafka Connect** | A cluster, a connector, a slot + publication to provision, a new dashboard |
 | **Still at-least-once** | Re-delivers after a restart → consumers **must stay idempotent** (same as Part 1) |
 
-Only one cost is genuinely dangerous: the **replication slot**. A logical slot makes Postgres retain WAL until the consumer reads past that point. If Debezium goes down unnoticed, WAL piles up, the disk fills, and **the entire database goes down** — not just your event pipeline. The hand-written relay at worst fell behind; the slot can take down the DB, so slot-lag monitoring is mandatory from day one. Two variants of the same risk: a low-traffic database pins the slot at an old position for hours — fixed with a **heartbeat**, having Debezium periodically write a tiny row so the slot advances; and `snapshot.mode: never` does no backfill, so the slot must exist *before* the first outbox write or that first event is lost.
+Only one cost is genuinely dangerous: the **replication slot**. A logical slot makes Postgres retain WAL until the consumer reads past that point. If Debezium goes down unnoticed, WAL piles up, the disk fills, and **the entire database goes down** — not just your event pipeline. The hand-written relay at worst fell behind; the slot can take down the DB, so slot-lag monitoring is mandatory from day one. Two variants of the same risk:
+
+- **Low-traffic database.** Pins the slot at an old position for hours — fixed with a **heartbeat**, having Debezium periodically write a tiny row so the slot advances.
+- **`snapshot.mode: never`.** Does no backfill, so the slot must exist *before* the first outbox write or that first event is lost.
 
 The rest is operational overhead. You now run Kafka Connect — a cluster, a connector, a slot/publication (provisioned in Terraform), a dashboard — worth it across many streams, overkill for one. And it's still at-least-once: consumers must stay idempotent, exactly as in Part 1.
 
@@ -126,4 +129,7 @@ make register-connector  # POST debezium/connector.json to Connect
 make place-order         # write one order; watch the outbox row stream to Kafka
 ```
 
-Two implementation details are worth pulling out. `docker-compose.yml` sets `max_slot_wal_keep_size=1GB` on Postgres — a hard cap on WAL retained for the slot. Without it, a stalled Debezium takes the whole database down; with it, Postgres invalidates the slot instead, turning a catastrophic failure into a recoverable one. The recovery path is `make connector-recover`: delete the connector (clears the stored offset), drop the invalidated slot, re-register — no stored offset triggers a fresh snapshot on restart. The second detail: the connector sets `publication.autocreate.mode=disabled` and relies on `002_debezium.sql` to create the publication and the heartbeat table before the connector is ever registered. The `snapshot.mode: never` constraint from the trade-off table above is enforced by migration order, not left to convention.
+Two implementation details are worth pulling out:
+
+- **`max_slot_wal_keep_size=1GB`** in `docker-compose.yml` — a hard cap on WAL retained for the slot. Without it, a stalled Debezium takes the whole database down; with it, Postgres invalidates the slot instead, turning a catastrophic failure into a recoverable one. Recovery is `make connector-recover`: delete the connector (clears the stored offset), drop the invalidated slot, re-register — no stored offset triggers a fresh snapshot on restart.
+- **`publication.autocreate.mode=disabled`** — the connector relies on `002_debezium.sql` to create the publication and the heartbeat table before the connector is ever registered. The `snapshot.mode: never` constraint from the trade-off table above is enforced by migration order, not left to convention.

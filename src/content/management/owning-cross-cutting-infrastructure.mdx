@@ -23,7 +23,12 @@ A customer running its orders in one app asked to also run its warehouse in anot
 
 ## What consolidating unlocks
 
-The return isn't a cleaner diagram — it's a class of product the old structure couldn't ship. The business can sell one account that works across every app. Partners can wire one app's output into another's input. Onboarding a customer becomes one action instead of three that have to be kept in step. The team stops being blocked from building cross-app features at all, because the relationships those features depend on finally have a place to live.
+The return isn't a cleaner diagram — it's a class of product the old structure couldn't ship:
+
+- **The business can sell one account** that works across every app.
+- **Partners can wire one app's output into another's input.**
+- **Onboarding a customer becomes one action** instead of three that have to be kept in step.
+- **The team stops being blocked from building cross-app features at all** — the relationships those features depend on finally have a place to live.
 
 ## Why wiring the apps together doesn't hold
 
@@ -99,7 +104,13 @@ A single owned identity system trades many small, invisible costs for one large,
 | No app re-implements "who is this customer" | A genuine single point of failure | The system goes down and every app degrades at once |
 | One customer, one account, one onboarding | The owning team must run like infrastructure | Staffed as a feature team, it falls behind, apps quietly keep their own copies again — recreating the fragmentation you paid to remove |
 
-The bottleneck bit first for me. The moment one system owns identity, every app's change to a user, an org, or a permission goes through the team that owns it — and a team funded like a feature team falls behind, at which point apps route around it and the copies come back. My fix wasn't to hand ownership back; that just returns the wall. It was to run the owning team as infrastructure: capacity ahead of demand, self-service for the common changes, and a clear line between what genuinely needs the owning team and what an app team can safely do itself. Centralize what identity *is*; push the work of changing it out to the edges.
+The bottleneck bit first for me. The moment one system owns identity, every app's change to a user, an org, or a permission goes through the team that owns it — and a team funded like a feature team falls behind, at which point apps route around it and the copies come back. My fix wasn't to hand ownership back; that just returns the wall. It was to run the owning team as infrastructure:
+
+- Capacity ahead of demand.
+- Self-service for the common changes.
+- A clear line between what genuinely needs the owning team and what an app team can safely do itself.
+
+**Centralize what identity *is*; push the work of changing it out to the edges.**
 
 ## One decision for tomorrow
 

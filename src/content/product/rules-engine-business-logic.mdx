@@ -10,7 +10,11 @@ tags: [iam, business-logic, architecture]
 import Pipeline from '../../components/diagrams/Pipeline.astro';
 import CompareCards from '../../components/diagrams/CompareCards.astro';
 
-Years ago I worked on a payment gateway that connected to a growing list of banks. Every transfer had a fee, and the fee depended on two things: which bank the transfer went through, and how much money moved. Over $100, charge a dollar. Over $200, charge two. Each bank had also negotiated its own adjustment on top — a few cents more here, a discount there. Then a large customer negotiated their own discount on top of all of that — their transfers through Bank X needed a lower fee than everyone else's transfers through Bank X. All of that logic was buried inside the engineering codebase, as a tangle of exceptions layered on bank, amount, and now customer. Every new bank, every renegotiated rate, every customer-specific deal, every new tier meant an engineer had to go in and change it. It grew until no one could look at it and say with confidence what the fee would be for a given bank, amount, and customer without tracing every exception by hand — and the people who actually owned those numbers, finance and ops, the ones sitting across the table from banks and customers negotiating the rates, couldn't touch any of it. Every rate change, every new customer deal, was a ticket to engineering.
+Years ago I worked on a payment gateway that connected to a growing list of banks. Every transfer had a fee, based on which bank and how much moved — over $100, charge a dollar; over $200, charge two. Each bank had also negotiated its own adjustment on top, and one large customer negotiated a discount on top of that: their transfers through Bank X needed a lower fee than everyone else's. All of that logic lived buried in the engineering codebase as a tangle of exceptions on bank, amount, and now customer.
+
+- Every new bank, every renegotiated rate, every customer deal meant an engineer had to change it.
+- No one could say with confidence what the fee would be for a given bank, amount, and customer without tracing every exception by hand.
+- Finance and ops — the people actually negotiating the rates with banks and customers — couldn't touch any of it. Every change was a ticket to engineering.
 
 **Business rules that change on a business cadence — fees, eligibility, pricing tiers — should be something the business edits directly, safely, without an engineer and a deploy in the loop.**
 
@@ -24,13 +28,23 @@ This is part 6, the last piece of the series on our identity system. Part 5 cove
 
 ## Why it matters
 
-A fee schedule buried in engineering logic doesn't just slow down changes — it becomes something no one fully trusts. Every fix risks breaking something else buried in the same tangle of exceptions, and the business impact isn't hypothetical: a wrong tier boundary, a stale bank rate, or a customer discount that didn't actually apply is either money the company gives away or a rate a bank or customer never agreed to pay. Meanwhile the people who negotiated the actual numbers have no way to act on them without opening a ticket and waiting for a release.
+**A fee schedule buried in engineering logic doesn't just slow down changes — it becomes something no one fully trusts.** Every fix risks breaking something else buried in the same tangle of exceptions. The business impact isn't hypothetical:
+
+- A wrong tier boundary.
+- A stale bank rate.
+- A customer discount that didn't actually apply.
+
+**Each one is either money given away or a rate never agreed to** — and the people who negotiated the actual numbers can't act on it without a ticket and a wait for the next release.
 
 ## Make the rule something the business owns, not code
 
 **Instead of a pile of exceptions buried in code, the fee schedule becomes a set of rules that finance and ops write directly — and every rule is checked before it's allowed to go live, so a business user can change the schedule but can't accidentally break it.**
 
-The fee for a transfer becomes a decision: given the bank, the amount, and who's sending it, what's the fee. Ops writes that rule by picking the bank, the amount threshold, the customer if one applies, and setting the fee — not by writing code. The system checks every rule as it's saved: is this a real bank, is this a real customer, is the amount a real number, does this rule actually make sense — before it's allowed anywhere near a live transaction. A rule that passes goes live immediately. No deploy, no engineer, no waiting for the next release window.
+The fee for a transfer becomes a decision: given the bank, the amount, and who's sending it, what's the fee.
+
+- **Ops writes the rule** by picking the bank, amount threshold, and customer if one applies, then setting the fee — not by writing code.
+- **The system checks every rule as it's saved** — real bank, real customer, real amount, does this rule make sense — before it's allowed near a live transaction.
+- **A rule that passes goes live immediately.** No deploy, no engineer, no waiting for the next release window.
 
 **Benefit:** the fee schedule updates the moment the business decides it should, with no risk of a malformed rule reaching production, because nothing gets saved until it's been checked.
 
@@ -52,7 +66,7 @@ A transfer comes in, and the rules are checked in order until one matches — th
   caption="If no rule matches, a default fee applies instead of the transfer failing."
 />
 
-Order matters as much as the rules themselves. Acme's discount rule has to sit above the general $200 tier, or the generic rule fires first and Acme never sees the deal it negotiated. A rule catching a case earlier always wins over a more specific one further down. That's not a detail to bury in a settings screen; it's part of the decision, and it has to be visible to whoever is arranging the rules.
+**Order matters as much as the rules themselves.** Acme's discount rule has to sit above the general $200 tier, or the generic rule fires first and Acme never sees the deal it negotiated — a rule catching a case earlier always wins over a more specific one further down. That's not a detail to bury in a settings screen; it has to be visible to whoever is arranging the rules.
 
 The old way and the new way land in different places on the same axis: who can change the rule, and how fast.
 
@@ -73,7 +87,12 @@ The old way and the new way land in different places on the same axis: who can c
 | Cost | Cheap to write once | Building the checking layer, once |
 | Reach | Whatever rule was hardcoded first — a fee schedule, an eligibility check | Any rule that changes on a business cadence — eligibility, pricing tiers, routing |
 
-The cost is real: someone has to build the layer that checks a rule before it's saved, and someone has to own what happens when a rule is wrong anyway — a wrong rate is money, so it needs a record of who set it and when, and ideally a way to try a rule against a sample transfer before it goes live. That's not free. But the alternative isn't actually cheaper — it just moves the cost onto engineering time spent on rate tickets, and onto the business waiting on a release train to react to a bank renegotiating its terms. You pay either way. The difference is whether the people who own the number can act on it themselves.
+**The cost is real:**
+
+- Someone has to build the layer that checks a rule before it's saved.
+- Someone has to own what happens when a rule is wrong anyway — a wrong rate is money, so it needs a record of who set it and when, ideally a way to test a rule against a sample transfer before it goes live.
+
+The alternative isn't cheaper. It moves the cost onto engineering time spent on rate tickets, and onto the business waiting on a release train to react to a bank renegotiating its terms. You pay either way — the difference is whether the people who own the number can act on it themselves.
 
 ## What's next
 

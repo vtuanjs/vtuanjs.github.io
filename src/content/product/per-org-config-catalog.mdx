@@ -7,7 +7,10 @@ draft: false
 tags: [iam, configuration, multi-tenancy]
 ---
 
+import { Image } from 'astro:assets';
 import Pipeline from '../../components/diagrams/Pipeline.astro';
+import iamConfigList from '../../assets/images/iam-config-list.png';
+import iamConfig from '../../assets/images/iam-config.png';
 
 On the same enterprise LMS from the flag post — every customer runs a different operation and wants a feature the others don't, or a threshold set differently for them. Before org config existed, the only way to do that was to check the customer's identity right inside the logic: `if org == "that one school", passing score = 80, else 60`. Every custom term a customer negotiated meant one more check like that, buried somewhere in the product.
 
@@ -23,13 +26,20 @@ This is part 5 of the series on our identity system. Part 4 covered the feature 
 
 ## Why it matters
 
-Every one of those checks is the product promising to remember one customer, by name, forever, in that exact spot. Multiply that by every customer who's ever negotiated a term, scattered across however many places that logic runs, and nobody can answer "what's different about this customer" without hunting through the product and hoping they found every spot. Miss one, and the customer who's supposed to pass at 80 gets graded at 60 wherever it was missed. Onboarding the next customer means finding that logic again and adding one more check beside the last.
+**Every one of those checks is the product promising to remember one customer, by name, forever, in that exact spot.** Multiply that by every customer who's ever negotiated a term, scattered across the product — nobody can answer "what's different about this customer" without hunting for every spot and hoping they found them all.
+
+- **Miss one,** and the customer who's supposed to pass at 80 gets graded at 60 wherever it was missed.
+- **Onboard the next customer,** and it means finding that logic again and adding one more check beside the last.
 
 ## Give the org a value, not an identity check
 
 **The product asks "what's this customer's value for this setting," never "which customer is this."**
 
-Org config replaces the identity check with a lookup. A catalog declares what's configurable and its type — passing score is a number, a feature is on or off, a currency is one of a fixed set. Each customer gets their own value for whatever applies to them; anyone who never negotiated a term gets the platform default. The logic that grades a submission or shows a feature never mentions a specific customer — it asks for this customer's current value and behaves accordingly, whoever they are.
+Org config replaces the identity check with a lookup:
+
+- **A catalog declares what's configurable and its type** — passing score is a number, a feature is on or off, a currency is one of a fixed set.
+- **Each customer gets their own value** for whatever applies to them; anyone who never negotiated a term gets the platform default.
+- **The logic never mentions a specific customer** — it asks for this customer's current value and behaves accordingly, whoever they are.
 
 <Pipeline
   title="Grading a submission, with and without org config"
@@ -44,11 +54,17 @@ Org config replaces the identity check with a lookup. A catalog declares what's 
 
 **Benefit:** onboarding a customer's negotiated term becomes setting a value, not changing the product's logic.
 
+<Image src={iamConfigList} alt="Config catalog list showing configurable keys and their types" />
+
+<Image src={iamConfig} alt="Config detail page showing API_RATE_LIMIT with per-organization values for org-epsilon and org-alpha" />
+
 ## Keep the contract term out of the flag drawer
 
 **A feature flag disappears once its rollout is done. A customer's contract term doesn't — it lives as long as the contract does.**
 
-It's tempting to reach for the flag system, since it already lets you turn something on or off per customer. But a flag exists to be deleted, covered in the earlier post on shipping dark and releasing on purpose. A contract term exists to last. Put it behind a flag, and it either gets swept up in a cleanup meant for rollout scaffolding, or the flag system fills up with switches nobody dares delete. One rule: temporary and on/off is a flag; permanent and per-customer is config.
+It's tempting to reach for the flag system, since it already lets you turn something on or off per customer. But a flag exists to be deleted — covered in the earlier post on shipping dark and releasing on purpose. A contract term exists to last. Put it behind a flag, and it either gets swept up in a cleanup meant for rollout scaffolding, or the flag system fills up with switches nobody dares delete.
+
+**One rule:** temporary and on/off is a flag; permanent and per-customer is config.
 
 ## The trade-off
 

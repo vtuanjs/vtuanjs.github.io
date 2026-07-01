@@ -11,7 +11,13 @@ tags: [iam, organization, architecture]
 import FanOut from '../../components/diagrams/FanOut.astro';
 import Pipeline from '../../components/diagrams/Pipeline.astro';
 
-On the org creation piece I own, one event does the heavy lifting: the moment a new organization is created, every app it's entitled to seeds its own masterdata automatically — config, infra, defaults, scoped to that org. I built it that way because the alternative is a checklist: create the org, then someone, or some script, walks through each app and system by hand. Skip one, and support gets a ticket the next morning — people can sign in to the orders app, but the warehouse app has no record of them, there's no billing account, no default settings anywhere. The org clearly exists — that's how they logged in. It just never got set up everywhere it needed to be.
+On the org creation piece I own, one event does the heavy lifting: the moment a new organization is created, every app it's entitled to seeds its own masterdata — config, infra, defaults, scoped to that org. The alternative is a checklist: create the org, then someone (or some script) walks each app and system by hand. Skip one, and support gets a ticket the next morning:
+
+- People can sign in to the orders app.
+- The warehouse app has no record of them.
+- No billing account, no default settings anywhere.
+
+The org clearly exists — that's how they logged in. It just never got set up everywhere it needed to be.
 
 **Creating an organization should set up all of its data and config automatically, across every system — with no human running a checklist that can miss a step.**
 
@@ -25,15 +31,21 @@ This is part 2 of the series. Part 1 introduced the five pieces; this part is th
 
 ## Why it matters
 
-A half-created org is the worst kind of bug: nothing looks broken — no error, no alert, the team can log in. The missing data surfaces later, at the first invoice or report, when no one remembers the step that got skipped. Fixing it is a manual hunt: which systems have this org's data, which don't, and what to create by hand. And it compounds — every new system that holds per-org data is one more thing to remember to set up.
+**A half-created org is the worst kind of bug: nothing looks broken.** No error, no alert — the team can log in.
+
+- **The gap surfaces late** — at the first invoice or report, when no one remembers the step that got skipped.
+- **Fixing it is a manual hunt** — which systems have this org's data, which don't, what to create by hand.
+- **It compounds** — every new system that holds per-org data is one more thing to remember to set up.
 
 ## Provision data and config automatically
 
 **The moment an org is created, every system that needs it sets up its own data and config — no one calls them, no one ticks a box.**
 
-When a new org is created, it publishes a single event — an "organization created" notification, the same idea as a webhook. Every app it's entitled to and every supporting system subscribes: the orders app, the warehouse app, billing, settings, anything else. When the event fires, each one provisions its own piece — including default config: currency, plan, formats, limits. The org doesn't know who is listening — it announces the fact once, and the listeners do the rest.
+A new org publishes a single event — an "organization created" notification, the same idea as a webhook. Every app it's entitled to subscribes — orders, warehouse, billing, settings, anything else. Each one provisions its own piece when the event fires, including default config: currency, plan, formats, limits. The org doesn't know who is listening — it announces the fact once, and the listeners do the rest.
 
-No checklist, no step to forget. A system that's briefly down picks up the event when it recovers. And because config is seeded instead of hand-entered, every org starts from the same correct baseline — no typos, no drift, no org set up slightly differently and behaving wrong in a way no one notices until a customer does. Anything genuinely org-specific is changed deliberately afterward, not reconstructed from memory at signup.
+- **No checklist, no step to forget.** A system that's briefly down picks up the event when it recovers.
+- **Config is seeded, not hand-entered** — every org starts from the same correct baseline, no typos, no drift.
+- **Org-specific changes still happen** — deliberately, afterward, not reconstructed from memory at signup.
 
 **Benefit:** Every system has the org's data and config, every time — correct and consistent. The human can't miss a step because there's no step to miss.
 
@@ -73,7 +85,12 @@ The old way is a person walking a checklist — and a checklist has a line you c
 | Human error | Always possible, surfaces late | No step to miss |
 | Cost | Simple at first, breaks as systems grow | Automation built once |
 
-It isn't free: the automatic setup has to be built once, and for a few seconds after creation the org exists before every system has caught up — so don't design the first-run experience to assume everything is ready instantly. But manual setup only looks simpler. It just moves the cost onto a person who will eventually miss a step, and onto support tickets when they do. You pay either way; the choice is whether you pay once, in automation, or forever in missed setups.
+**It isn't free:**
+
+- The automatic setup has to be built once.
+- For a few seconds after creation the org exists before every system has caught up — don't design the first-run experience to assume everything is ready instantly.
+
+Manual setup only looks simpler. It moves the cost onto a person who will eventually miss a step, and onto the support tickets when they do. You pay either way — the choice is once, in automation, or forever, in missed setups.
 
 ## What's next
 

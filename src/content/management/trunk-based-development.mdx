@@ -10,7 +10,10 @@ tags: ["engineering-process", "team-dynamics", "release-management", "feature-fl
 import Toggle from '../../components/diagrams/Toggle.astro';
 import Pipeline from '../../components/diagrams/Pipeline.astro';
 
-On a learning platform I worked on, we ran on feature branches: open one per feature, merge only when it was done. Branches stayed open for weeks and grew to thousands of changed files. Two people were quietly paying for that. The manager had no visibility — the system showed no change for weeks, so there was no way to answer whether anything was actually getting done. QA had no time — the diff landed all at once right before release, and they had one sprint to catch bugs in a month's worth of invisible change.
+On a learning platform I worked on, we ran on feature branches: open one per feature, merge only when it was done. Branches stayed open for weeks and grew to thousands of changed files. Two people were quietly paying for that:
+
+- **The manager had no visibility.** The system showed no change for weeks — no way to answer whether anything was actually getting done.
+- **QA had no time.** The diff landed all at once right before release — one sprint to catch bugs in a month's worth of invisible change.
 
 **The problem isn't that the branch got long. The problem is that the team confused "branch is merged" with "feature is released" — and let Git become the staging environment.**
 
@@ -20,7 +23,11 @@ On a learning platform I worked on, we ran on feature branches: open one per fea
 | **Why** | The instinct to protect main from incomplete work is correct. The method — keeping a long-lived branch — is wrong. It delays integration, not the release. |
 | **Goal** | Integrate continuously into a single branch. Control separately when users see the feature. |
 
-Once integration and release are separate, the manager gets a running signal of progress instead of a black box that resolves once every few weeks — merges to `develop` are visible immediately, even while the feature stays dark behind a flag. QA gets its sprint back, because code lands in small pieces continuously instead of arriving as one release-week diff. And because release is a flag flip, product decides when to expose a feature independently of when engineering finishes building it — nobody is stuck waiting on the other.
+Once integration and release are separate:
+
+- **The manager gets a running signal of progress** instead of a black box that resolves once every few weeks — merges to `develop` are visible immediately, even while the feature stays dark behind a flag.
+- **QA gets its sprint back** — code lands in small pieces continuously instead of arriving as one release-week diff.
+- **Product decides when to expose a feature** independently of when engineering finishes building it — nobody is stuck waiting on the other.
 
 ## What actually breaks
 
@@ -59,7 +66,14 @@ This objection assumes that incomplete code must stay out of `develop` to protec
 
 **Feature flags solve this without the branch.** Hide unfinished work behind a flag in the code, not in Git. When the flag is off, users see the old behavior. When it's on, they see the new one. Engineers keep merging; product controls when to flip.
 
-The common counter-objection: "That adds complexity." It does — one `if` statement per guarded feature. The branch adds complexity too: conflicts, merge coordination, review overload, delayed integration signal. The question is which complexity is easier to reason about and clean up. A flag with a clear owner is far easier to clean up than a branch that's fallen six weeks behind `develop`.
+The common counter-objection: "That adds complexity." It does — one `if` statement per guarded feature. But the branch adds complexity too:
+
+- Conflicts
+- Merge coordination
+- Review overload
+- Delayed integration signal
+
+**The question is which complexity is easier to reason about and clean up.** A flag with a clear owner is far easier to clean up than a branch that's fallen six weeks behind `develop`.
 
 ## What a manager should watch
 
@@ -93,7 +107,13 @@ This shift often needs to be demonstrated with a single feature before it become
 
 I used to cut release branches. The workflow felt structured: `release/2.4` branches off `develop` at a milestone, gets stabilized, gets deployed. Clear and auditable.
 
-In practice it meant two codebases running in parallel. Fixes in production went into the release branch. If someone remembered, they also went into `develop`. Bugs appeared in production that had been fixed in `develop` but never backported. The release branch wasn't protecting production — it was hiding integration debt and creating a second fix surface that diverged under pressure.
+In practice it meant two codebases running in parallel:
+
+- Fixes in production went into the release branch.
+- If someone remembered, they also went into `develop`.
+- Bugs appeared in production that had been fixed in `develop` but never backported.
+
+**The release branch wasn't protecting production** — it was hiding integration debt and creating a second fix surface that diverged under pressure.
 
 Tags on `develop` do the same job — a stable, immutable artifact you can promote — without the parallel codebase. There's one source of truth.
 

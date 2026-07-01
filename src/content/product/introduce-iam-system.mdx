@@ -42,11 +42,20 @@ This is the first post in a series on building that system. This part frames the
 
 ## Why it matters
 
-The cost isn't a messier codebase. It's a class of product you can't sell. You can't offer one account that works across every app, because no app can say two accounts are the same company. You can't let one app feed another, because neither agrees on who the customer is. Onboarding a customer onto the full suite is three separate setups that have to be kept in step by hand, and every cross-app feature the business asks for hits the same wall: the relationship it depends on has nowhere to live.
+**The cost isn't a messier codebase. It's a class of product you can't sell:**
 
-It compounds with every app you add. Each new app is one more copy of the customer, one more answer that can disagree with the others, one more integration to hand-build the next time two apps have to know about the same company.
+- **No single account.** You can't offer one login that works across every app, because no app can say two accounts are the same company.
+- **No cross-app handoff.** You can't let one app feed another, because neither agrees on who the customer is.
+- **No clean onboarding.** Onboarding a customer onto the full suite is three separate setups kept in step by hand.
+- **Every cross-app feature hits the same wall** — the relationship it depends on has nowhere to live.
 
-Centralizing identity doesn't add complexity. It removes the hidden complexity that was already there, spread across every app that kept its own copy.
+**It compounds with every app you add:**
+
+- One more copy of the customer.
+- One more answer that can disagree with the others.
+- One more integration to hand-build the next time two apps need to know about the same company.
+
+**Centralizing identity doesn't add complexity — it removes the hidden complexity that was already there,** spread across every app that kept its own copy.
 
 ## The five pieces
 
@@ -71,7 +80,7 @@ Centralizing identity doesn't add complexity. It removes the hidden complexity t
 
 **Benefit:** One action creates the customer. Every other system follows automatically.
 
-**Why this exists:** When a new customer signs up, every part of the product needs to know they exist — billing, support, access control, analytics. Without a single place that owns this, each team provisions their own copy, and if any one step fails, the customer ends up in a broken state that's hard to diagnose and harder to fix. Part 2.
+**Why this exists:** signup touches billing, support, access control, analytics — every team needs to know the customer exists. Without one owner, each team provisions its own copy. One failed step leaves the customer half-created, and no one can tell where. Part 2.
 
 <figure>
   <Image src={iamOrg} alt="Organizations list in IAM Admin showing org code, name, status, and linked apps" />
@@ -82,7 +91,7 @@ Centralizing identity doesn't add complexity. It removes the hidden complexity t
 
 **Benefit:** One authoritative answer to "who is this person and what are they allowed to do" — regardless of which part of the product is asking.
 
-**Why this exists:** The same person can be an admin in their own account and a read-only viewer in a partner's. Without a system that tracks this cleanly, access bugs appear — someone sees something they shouldn't, or can't do something they should, and there's no clear place to fix it. Part 3.
+**Why this exists:** the same person can be an admin in their own account and read-only in a partner's. Without one system tracking that, access bugs follow — wrong people see things, right people get blocked, and there's no single place to fix it. Part 3.
 
 <figure>
   <Image src={iamUser} alt="Users list in IAM Admin showing name, email, role, activated and locked status" />
@@ -98,7 +107,7 @@ Centralizing identity doesn't add complexity. It removes the hidden complexity t
 
 **Benefit:** Faster, safer launches. Pilots with specific customers before committing to everyone. No emergency deploys to turn something off.
 
-**Why this exists:** New features used to ship to everyone at once, or stay hidden until they were fully ready. Feature flags change that — turn a feature on for one or two customers to watch it work with real usage, then widen the rollout, and turn it off in seconds if something breaks. Part 4.
+**Why this exists:** features used to ship to everyone at once or stay hidden until fully ready. A flag turns a feature on for one or two customers first, widens the rollout as it proves out, and turns it off in seconds if something breaks. Part 4.
 
 <figure>
   <Image src={iamFeatureFlag} alt="Feature Flags list showing key, name, description, toggle status, mode, and organization count" />
@@ -109,7 +118,7 @@ Centralizing identity doesn't add complexity. It removes the hidden complexity t
 
 **Benefit:** Each customer's configuration lives in one place the whole product reads consistently, with no guesswork about which version is current.
 
-**Why this exists:** Some customers have different pricing, currency, invoice formats, or SLA tiers. Without a governed place for this, those differences end up scattered — in spreadsheets, in code exceptions, in tribal knowledge. They drift, conflict, and cause the wrong behavior for the wrong customer. Part 5.
+**Why this exists:** customers differ on pricing, currency, invoice format, SLA tier. Without a governed place for that, the differences scatter — spreadsheets, code exceptions, tribal knowledge — and drift into the wrong behavior for the wrong customer. Part 5.
 
 <figure>
   <Image src={iamConfig} alt="Config detail page showing API_RATE_LIMIT with per-organization values for org-epsilon and org-alpha" />
@@ -120,7 +129,7 @@ Centralizing identity doesn't add complexity. It removes the hidden complexity t
 
 **Benefit:** The right people can change business logic directly — validated, auditable, live without a deploy. Engineering is no longer the bottleneck for every rule change.
 
-**Why this exists:** Shipping fees, discount eligibility, pricing tiers — this logic changes on a business schedule, not an engineering one. When it's in code, every change needs a developer and a deployment. When it's in a free-text box, one typo can break checkout. Part 6.
+**Why this exists:** shipping fees, discount eligibility, pricing tiers change on a business schedule, not an engineering one. In code, every change needs a developer and a deploy. In a free-text box, one typo breaks checkout. Part 6.
 
 <figure>
   <Image src={iamRules} alt="Rules detail page showing Loan Risk rule with CEL conditions, per-organization overrides, and FIRST_MATCH strategy" />
@@ -139,8 +148,8 @@ Centralizing these decisions is not free.
 | Onboarding a new customer | Each app provisions separately — easy to miss one | One action, everything follows |
 | Risk if the system is down | Isolated to one app | Broader impact |
 
-The real cost is concentration: if this system has a problem, more of the product feels it. That's a real risk, and it's managed deliberately — not ignored.
+**The real cost is concentration:** if this system breaks, more of the product feels it. That's real, and it's managed deliberately — not ignored.
 
-But the per-app model doesn't avoid this cost. It hides it as features you can't ship and integrations you rebuild by hand, one cross-app request at a time. A single owner makes the answer a fact instead of a guess.
+The per-app model doesn't avoid the cost. It hides it as features you can't ship and integrations you rebuild by hand, one cross-app request at a time. A single owner turns the answer into a fact instead of a guess.
 
 Part 2 starts with the organization: what actually happens when a new customer is created, and why getting it wrong shows up so late.

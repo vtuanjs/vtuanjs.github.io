@@ -10,9 +10,19 @@ tags: ["git", "ci-cd", "feature-flags", "devops", "engineering-process"]
 import Pipeline from '../../components/diagrams/Pipeline.astro';
 import Toggle from '../../components/diagrams/Toggle.astro';
 
-On an LMS I worked on, we used feature branches: open one per feature, merge only when the feature was done. A branch would sit open for weeks and accumulate thousands of changed files. Two people paid for that in different ways. The manager had no visibility — the system showed no change for weeks, so there was no way to answer "did we actually do anything this sprint." QA had no time — a giant diff landed all at once, right before release, and they had one sprint to catch bugs in code that had been changing invisibly for a month.
+On an LMS I worked on, we used feature branches: open one per feature, merge only when the feature was done. A branch would sit open for weeks and accumulate thousands of changed files. Two people paid for that, in different ways:
 
-Long-lived branches defer integration risk to the worst possible moment: right before release, in the largest possible batch. The fix isn't stricter branch hygiene — it's separating integration from release, so there's no reason to hold a branch open in the first place. We merge small changes to staging continuously with the flag on, and let preprod/prod run with the flag off — which buys the time to test and fix bugs before anyone flips the switch.
+- **The manager had no visibility.** The system showed no change for weeks — no way to answer "did we actually do anything this sprint."
+- **QA had no time.** A giant diff landed all at once, right before release — one sprint to catch bugs in code that had been changing invisibly for a month.
+
+**Long-lived branches defer integration risk to the worst possible moment: right before release, in the largest possible batch.**
+
+The fix isn't stricter branch hygiene — it's separating integration from release, so there's no reason to hold a branch open in the first place:
+
+- Merge small changes to staging continuously, flag **on**.
+- Let preprod/prod run with the flag **off**.
+
+That split buys the time to test and fix bugs before anyone flips the switch.
 
 **The core invariant: `develop` is always deployable. Whether something is released is controlled by flags, not branch state.**
 
@@ -24,9 +34,12 @@ Long-lived branches defer integration risk to the worst possible moment: right b
 
 ## Branch strategy
 
-One long-lived branch: `develop`. Engineers branch off `develop`, work in short-lived branches — target hours to two days, never weeks — and merge back via PR. The PR is a review, not a staging environment.
+- **One long-lived branch:** `develop`.
+- Engineers branch off `develop` into **short-lived branches** — target hours to two days, never weeks.
+- Merge back via PR. **The PR is a review, not a staging environment.**
+- Branch naming is irrelevant to the model. What matters: nothing accumulates more than a few days of divergence from `develop`.
 
-Branch naming is irrelevant to the model. What matters is that nothing accumulates more than a few days of divergence from `develop`. A branch that's open for a week is already carrying integration debt — it will find out about conflicts at merge time, and the author has lost the mental context to resolve them cleanly.
+A branch open for a week is already carrying integration debt — it finds out about conflicts at merge time, and the author has lost the mental context to resolve them cleanly.
 
 ## CI pipeline on merge
 
@@ -62,11 +75,16 @@ The production promotion is always manual — someone picks a tag from `develop`
 
 ## Timestamp gate
 
-The deployment workflow rejects any tag older than what's currently running in production. The check is simple: `tag_timestamp >= current_prod_tag_timestamp`. If it fails, the deploy aborts before touching infrastructure.
+The deployment workflow rejects any tag older than what's currently running in production:
 
-This prevents the most common accidental rollback: someone picks a tag from three weeks ago for some reason, deploys it, and overwrites two weeks of production releases. The gate makes that physically impossible without an explicit override.
+```
+if tag_timestamp < current_prod_tag_timestamp:
+    abort_deploy()  # before touching infrastructure
+```
 
-The gate also enforces forward-only promotion. Rollbacks, when needed, are done by reverting in `develop` and deploying the new commit — not by picking an old tag. This keeps the rollback visible in the commit history instead of being a silent deploy-artifact operation.
+**What it prevents:** someone picks a tag from three weeks ago, deploys it, and silently overwrites two weeks of production releases. The gate makes that physically impossible without an explicit override.
+
+**Forward-only promotion:** rollbacks are done by reverting in `develop` and deploying the new commit — never by picking an old tag. That keeps the rollback visible in commit history instead of being a silent deploy-artifact operation.
 
 ## Feature flags
 
@@ -97,11 +115,27 @@ Flag accumulation is the main failure mode of this model. Teams adopt the flag d
 
 ## Hotfix flow
 
-Every successful deploy to preprod or production creates a hotfix branch named after the deployed tag — `hotfixes/preprod/[tag]` and `hotfixes/prod/[tag]` — and stores those names in GitHub Actions variables (`HOTFIX_BRANCH_PREPROD`, `HOTFIX_BRANCH_PROD`). The branch name is derived from the tag's annotation message (`Branch: <branch-name>`), so when a hotfix itself gets deployed, post-deploy reads the annotation and resolves back to the original branch — the same branch is reused, not a new one per incident. A new branch is only created when a fresh release from `develop` is deployed.
+**Branch naming:** every successful deploy to preprod or production creates a hotfix branch named after the deployed tag:
 
-The CI pipeline watches for pushes to `hotfixes/**`: `hotfixes/preprod/*` triggers build and auto-deploy to preprod; `hotfixes/prod/*` triggers build only — production stays manual.
+| Environment | Branch pattern | GitHub Actions variable |
+|---|---|---|
+| Preprod | `hotfixes/preprod/[tag]` | `HOTFIX_BRANCH_PREPROD` |
+| Prod | `hotfixes/prod/[tag]` | `HOTFIX_BRANCH_PROD` |
 
-This setup requires a `GetCurrentRelease` workflow action. Before cherry-picking, an engineer runs it to discover what's currently deployed: the action reads `HOTFIX_BRANCH_PREPROD` or `HOTFIX_BRANCH_PROD` from GitHub Actions variables and outputs the branch name along with the exact checkout and cherry-pick commands. Without this step there's no reliable way to know which hotfix branch to target — the variable is the single source of truth.
+The branch name is derived from the tag's annotation message (`Branch: <branch-name>`). When a hotfix itself gets deployed, post-deploy reads that annotation and resolves back to the original branch — **the same branch is reused, not a new one per incident.** A new branch is only created when a fresh release from `develop` is deployed.
+
+**Trigger rules** for pushes to `hotfixes/**`:
+
+- `hotfixes/preprod/*` → build + auto-deploy to preprod
+- `hotfixes/prod/*` → build only — production stays manual
+
+**Finding the target branch:** run the `GetCurrentRelease` workflow action before cherry-picking. It reads `HOTFIX_BRANCH_PREPROD` / `HOTFIX_BRANCH_PROD` and outputs:
+
+- the branch name
+- the exact `checkout` command
+- the exact `cherry-pick` command
+
+The variable is the single source of truth — without this step there's no reliable way to know which hotfix branch to target.
 
 **The fix always starts in `develop`, never the hotfix branch.** This is the invariant that cannot reverse under pressure.
 
@@ -121,11 +155,15 @@ If the fix goes to the hotfix branch first — the instinct under an incident �
 
 ## Why not release branches
 
-The alternative is cutting a `release/2.4` branch at a milestone, stabilizing it, deploying it. The workflow looks structured. In practice it creates two codebases running in parallel.
+The alternative: cut a `release/2.4` branch at a milestone, stabilize it, deploy it. Looks structured. In practice it creates two codebases running in parallel:
 
-A fix that goes into `release/2.4` may or may not get backported to `develop`. When the team is focused on the incident, backport is an afterthought. The bug reappears in `release/2.5` six weeks later. The release branch wasn't protecting production — it was hiding integration debt and splitting the fix surface across two places.
+- A fix lands in `release/2.4` → **may or may not** get backported to `develop`.
+- Under incident pressure, backport is an afterthought.
+- The bug reappears in `release/2.5` six weeks later.
 
-Tags on `develop` are immutable deploy artifacts that do the same job. The difference: there's one codebase, one fix surface, and the tag makes no claim about ongoing stability. It's just a pointer to a known-good commit.
+The release branch wasn't protecting production — it was hiding integration debt and splitting the fix surface across two places.
+
+**Tags on `develop` do the same job without the split:** one codebase, one fix surface, and the tag makes no claim about ongoing stability — it's just a pointer to a known-good commit.
 
 ## Cost table
 
@@ -136,8 +174,16 @@ Tags on `develop` are immutable deploy artifacts that do the same job. The diffe
 | Production promotions are explicit tag choices | Timestamp gate must be maintained | Gate drift lets old tags through |
 | Hotfix path is pre-created | Order reverses under pressure | Fix goes to production first and gets lost on the next develop release |
 
-The non-negotiable dependency is CI reliability. A 40-minute flaky test suite in this model is worse than in any other — it's the gate every engineer hits multiple times a day. One engineer who starts bypassing CI because "the test is flaky anyway" breaks the model for everyone. Fix the test; don't route around it.
+**Non-negotiable dependency: CI reliability.** A flaky 40-minute test suite is worse in this model than in any other — it's the gate every engineer hits multiple times a day. One engineer who bypasses CI because "the test is flaky anyway" breaks the model for everyone. Fix the test; don't route around it.
 
 ## The practical starting point
 
-The smallest increment that demonstrates the model: take one feature currently on a long-lived branch, break it into the smallest mergeable piece, put the incomplete surface behind a flag, and merge. Track how long the next PR for that feature takes to merge and review. The diff size and conflict surface will both be smaller. That observation is more persuasive than this document.
+Smallest increment that demonstrates the model:
+
+1. Take one feature currently on a long-lived branch.
+2. Break it into the smallest mergeable piece.
+3. Put the incomplete surface behind a flag.
+4. Merge.
+5. Track how long the next PR for that feature takes to merge and review.
+
+The diff size and conflict surface will both be smaller. That observation is more persuasive than this document.

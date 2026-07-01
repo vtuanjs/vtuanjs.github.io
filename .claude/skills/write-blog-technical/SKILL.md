@@ -62,6 +62,15 @@ Every Technical post follows this arc. Drop a section if the post is better with
 
 7. **The trade-off** — what this costs; when he'd choose differently. Always a table, always with prose expanding the *why* below. Never skip or thin this section — it's the proof that the problem is understood.
 
+## Format inside sections — no paper walls
+
+Tuan does not want posts that read like a paper. Within any section, default to lists, tables, code blocks, or short bolded fragments over multi-sentence paragraph blocks:
+
+- **Any time you're stating 2+ parallel items, ordered steps, named rules, or a before/after — that's a list or table, never a paragraph.** ("The gate prevents X. It also enforces Y. It also means Z." → three bullets, not three sentences.)
+- **Bold the key term/verdict at the start of the line**, not buried mid-sentence, so a scanner catches it without reading the clause.
+- A paragraph is still the right tool for connective reasoning — one or two sentences explaining *why* a list or diagram is true. Don't force reasoning into bullets if it's a single continuous thought.
+- **Tell:** if a paragraph has an em-dash chain and 3+ enumerable ideas stacked in it, or you could re-read it and split it into bullets without losing meaning, split it.
+
 ## Layered depth — write for two readers
 
 Every post serves two readers: the scanner and the one who stays.
@@ -182,6 +191,7 @@ Save to `src/content/technical/` as a `.mdx` file (so it can import diagram comp
 - [ ] Decorative/emotional phrasing cut; every strong take and all reasoning kept.
 - [ ] Strong opinions are falsifiable — each one names what it breaks under.
 - [ ] Tight prose: no point restated twice, no clause that can go without losing an idea.
+- [ ] No paper walls: parallel items/steps/rules/before-after are lists or tables, not paragraphs; key terms bolded at line start.
 - [ ] Exactly one narrow decision; the constraint that forced it is explicit.
 - [ ] Depth answers the invariant / assumption / failure-mode / cost / reversal questions, not just length.
 - [ ] Problem/Why/Goal table present and crisp.

@@ -56,6 +56,16 @@ This is the default shape. Deviate only when a different order makes the argumen
 
 8. **What's next** — one sentence pointing to the next post in the series.
 
+## Format inside sections — no paper walls
+
+Tuan does not want posts that read like a paper. Within any section, default to lists, tables, or short bolded fragments over multi-sentence paragraph blocks:
+
+- **Any time you're naming 2+ parallel pains, benefits, steps, or a before/after — that's a list or table, never a paragraph.**
+- **Bold the key benefit/verdict at the start of the line**, not buried mid-sentence — a scanning stakeholder should catch it without reading the clause.
+- A paragraph is still right for connective reasoning — one or two sentences of *why*, not a container for enumerable ideas.
+- **Tell:** if a paragraph has an em-dash chain and 3+ enumerable ideas stacked in it, split it into bullets.
+- **Product space leans harder into this than the others.** The audience skims for the decision, not the argument. When a "why this exists" or trade-off explanation runs more than ~2 sentences of prose, look for the list hiding inside it before defaulting to a paragraph.
+
 ## Voice and language rules
 
 - **No code blocks.** Zero. If a concept needs illustration, use a plain analogy or a concrete business example.
@@ -123,4 +133,5 @@ Save to `src/content/product/` with a kebab-case filename — use the `.mdx` ext
 - [ ] Cost of inaction named.
 - [ ] Trade-off section names who pays the cost and who gets the benefit.
 - [ ] Every sentence names a problem or a benefit; precise nouns over vague adjectives; nothing restated twice.
+- [ ] No paper walls: parallel pains/benefits/steps/before-after are lists or tables, not paragraphs; key benefits bolded at line start.
 - [ ] Frontmatter complete including `tags` (reused from existing posts where they match), saved to `src/content/product/`, `draft: true`.
