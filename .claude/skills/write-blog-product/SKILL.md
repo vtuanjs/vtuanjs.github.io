@@ -93,9 +93,12 @@ description: "One line — the exact question this post answers."
 date: 2026-07-01
 author: Tuan Nguyen
 draft: true
+tags: [tag-one, tag-two, tag-three]
 # image: /og/my-post.png
 ---
 ```
+
+- **`tags`** — 2-5 lowercase kebab-case topic tags (e.g. `feature-flags`, `multi-tenancy`, `onboarding`). Look at existing posts in `src/content/product/` for the tag vocabulary already in use and reuse matching tags before inventing new ones.
 
 Save to `src/content/product/` with a kebab-case filename — use the `.mdx` extension when the post imports diagram components (it usually should). Always `draft: true` until Tuan confirms.
 
@@ -120,4 +123,4 @@ Save to `src/content/product/` with a kebab-case filename — use the `.mdx` ext
 - [ ] Cost of inaction named.
 - [ ] Trade-off section names who pays the cost and who gets the benefit.
 - [ ] Every sentence names a problem or a benefit; precise nouns over vague adjectives; nothing restated twice.
-- [ ] Frontmatter complete, saved to `src/content/product/`, `draft: true`.
+- [ ] Frontmatter complete including `tags` (reused from existing posts where they match), saved to `src/content/product/`, `draft: true`.

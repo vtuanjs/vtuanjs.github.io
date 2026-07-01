@@ -37,8 +37,9 @@ One picture or animation beats a hundred boring words. Every space now carries i
 
 1. Identify or confirm the space with the user.
 2. Follow the skill for that space — it has the full rules for audience, structure, voice, and checklist.
-3. Save the draft to the correct directory:
+3. Every post's frontmatter includes `tags` — 2-5 lowercase kebab-case topic tags. Check existing posts in that space's directory for the tag vocabulary already in use and reuse matching tags before inventing new ones.
+4. Save the draft to the correct directory:
    - Technical: `src/content/technical/`
    - Product: `src/content/product/`
    - Management: `src/content/management/`
-4. Tell the user: `npm run dev` to preview, flip `draft: true` off to publish.
+5. Tell the user: `npm run dev` to preview, flip `draft: true` off to publish.

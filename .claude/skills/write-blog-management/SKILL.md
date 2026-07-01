@@ -139,12 +139,14 @@ description: "One line — the exact question this post answers."
 date: 2026-07-01
 author: Tuan Nguyen
 draft: true
+tags: [tag-one, tag-two, tag-three]
 # image: /og/my-post.png
 ---
 ```
 
 - **`title`** — name the decision or the call, not the topic. "Promote from within vs. hire externally for a senior role" beats "Hiring decisions."
 - **`description`** — the one question this post answers.
+- **`tags`** — 2-5 lowercase kebab-case topic tags (e.g. `team-dynamics`, `release-management`, `hiring`). Check existing posts in `src/content/management/` for the tag vocabulary already in use and reuse matching tags before inventing new ones.
 
 Save to `src/content/management/` with a kebab-case filename — use the `.mdx` extension when the post imports diagram components (it usually should). Always `draft: true` until Tuan confirms.
 
@@ -174,4 +176,4 @@ Save to `src/content/management/` with a kebab-case filename — use the `.mdx` 
 - [ ] Closing is one decision the reader can act on tomorrow — not a summary.
 - [ ] Tight prose: no point restated twice, no clause that can go without losing an idea.
 - [ ] Nothing identifies the real team, company, or individuals.
-- [ ] Frontmatter complete, saved to `src/content/management/`, `draft: true`.
+- [ ] Frontmatter complete including `tags` (reused from existing posts where they match), saved to `src/content/management/`, `draft: true`.

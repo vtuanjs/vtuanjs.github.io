@@ -1,10 +1,11 @@
 ---
-title: "The feature flag is the seam between merged and released"
+title: "The feature flag is the seam between merged and released (part 4)"
 description: "In trunk-based development, code ships to production dark and the flag decides when it's live. Per-org targeting is what lets you pilot with a few customers before everyone."
 date: 2026-07-04
 author: Tuan Nguyen
 draft: false
 image: /images/iam-feature-flag.png
+tags: [iam, feature-flags, trunk-based-development]
 ---
 
 import Toggle from '../../components/diagrams/Toggle.astro';
@@ -12,6 +13,8 @@ import Toggle from '../../components/diagrams/Toggle.astro';
 On an enterprise LMS I worked on — teachers running lessons, students submitting work — the contract forbade breaking the service, and it named the only windows a release could happen in. We still wanted to test in staging and preprod the day code was ready. So a merge could no longer mean a release. A feature flag is what splits the two apart. (A different system from the identity posts on this blog, which were built git-based.)
 
 **A release should be reversible in seconds, and separate from the moment the code was written.**
+
+This is part 4 of the series on our identity system. Part 3 covered how one person's access resolves across organizations; this part is the third piece: how a feature actually reaches production, and why merging code and releasing it to customers can't be the same event.
 
 Trunk-based development needs this: engineering merges continuously, but the contract decides when anyone sees the result. (For the org-targeting side of flags, see the sibling post on organization-scoped feature flags; for the engineering mechanics, see [Trunk-based development: a coordination problem, not a Git problem](/management/trunk-based-development/).)
 
@@ -54,4 +57,4 @@ The cost lands on engineering, not the customer: every flag is code that has to 
 
 ## What's next
 
-The next post makes the case for the organization as the right thing a flag targets — not a percentage, not a user, but the customer you're actually piloting and selling to.
+Part 5 makes the case for the organization as the right thing a flag targets — not a percentage, not a user, but the customer you're actually piloting and selling to. It also draws the line between a flag and the other place per-customer differences live: a typed config catalog for the terms that outlast the rollout.

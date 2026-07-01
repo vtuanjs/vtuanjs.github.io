@@ -152,12 +152,14 @@ description: "One line — the exact question this post answers."
 date: 2026-07-01
 author: Tuan Nguyen
 draft: true
+tags: [tag-one, tag-two, tag-three]
 # image: /og/my-post.png
 ---
 ```
 
 - **`title`** — name the decision, not the topic. "Putting role IDs (not role names) in the token" beats "Token design."
 - **`description`** — the one question this post answers. A reader should know in one line whether it's for them.
+- **`tags`** — 2-5 lowercase kebab-case topic tags naming the real mechanisms involved (e.g. `distributed-systems`, `postgres`, `outbox-pattern`). Check existing posts in `src/content/technical/` for the tag vocabulary already in use and reuse matching tags before inventing new ones.
 
 Save to `src/content/technical/` as a `.mdx` file (so it can import diagram components). Always `draft: true` until Tuan confirms.
 
@@ -189,4 +191,4 @@ Save to `src/content/technical/` as a `.mdx` file (so it can import diagram comp
 - [ ] Trade-off section names a real cost and when he'd choose differently.
 - [ ] Every snippet ≤20 lines, generic names, no real paths or domain terms.
 - [ ] Nothing reveals the underlying system, employer, or proprietary logic.
-- [ ] Frontmatter complete, saved to `src/content/technical/`, `draft: true`.
+- [ ] Frontmatter complete including `tags` (reused from existing posts where they match), saved to `src/content/technical/`, `draft: true`.

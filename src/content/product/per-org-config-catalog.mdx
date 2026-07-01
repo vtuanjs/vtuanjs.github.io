@@ -1,9 +1,10 @@
 ---
-title: "Per-tenant settings need a typed catalog, and they are not feature flags"
+title: "Per-tenant settings need a typed catalog, and they are not feature flags (part 5)"
 description: "Custom per-organization values belong in a governed catalog of typed keys — permanent, validated, key-value config — kept strictly separate from temporary rollout flags."
 date: 2026-07-05
 author: Tuan Nguyen
-draft: true
+draft: false
+tags: [iam, configuration, multi-tenancy]
 ---
 
 import Pipeline from '../../components/diagrams/Pipeline.astro';
@@ -11,6 +12,8 @@ import Pipeline from '../../components/diagrams/Pipeline.astro';
 On the same enterprise LMS from the flag post — every customer runs a different operation and wants a feature the others don't, or a threshold set differently for them. Before org config existed, the only way to do that was to check the customer's identity right inside the logic: `if org == "that one school", passing score = 80, else 60`. Every custom term a customer negotiated meant one more check like that, buried somewhere in the product.
 
 **Behavior should differ across customers because of a value someone set, not because of a check someone wrote.**
+
+This is part 5 of the series on our identity system. Part 4 covered the feature flag — the switch for a rollout in progress. This part draws the line to the other place per-customer differences live: a catalog of settings that outlast the rollout, for as long as the contract does.
 
 | | |
 |---|---|
@@ -60,3 +63,5 @@ The cost lands on engineering up front: a catalog has to exist before the first 
 ## What's next
 
 The earlier post on shipping dark covers the flag side of this boundary. Together, the rule is: if it's part of what the product does for a customer for the life of their contract, it's config; if it's here to stage a release, it's a flag.
+
+Part 6 goes one step further than a config value: rules that aren't just a per-customer setting, but business logic — fee schedules, eligibility, pricing tiers — that changes on a business cadence and needs to be owned by the business, not buried in code.
