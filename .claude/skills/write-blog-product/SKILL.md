@@ -15,6 +15,12 @@ The job is not to explain *how* something works. It's to explain *what* it is, *
 
 That's the whole spine: **problem before solution, benefit before feature, opinion over neutrality.** Everything below is how to execute it.
 
+## Personal voice — real experience, never invented
+
+What makes a post land as lived experience instead of a generic explainer is imprint: "When I worked on...", "I once had a customer...", "On a product I ran...". Every post should carry at least one such moment — usually the hook, sometimes a feature section.
+
+**Never invent the anecdote.** Do not assume a "customers kept complaining that..." story from the topic — a fabricated example reads as generic and undermines the whole post. Before writing the hook or any concrete example, use `AskUserQuestion` to ask Tuan for the real pain, the real customer situation, the real thing that actually happened. Write from his answer. If he has no real anecdote for a section, drop the personal framing there rather than inventing one.
+
 ## Audience
 
 Non-technical stakeholders. Write as if explaining to a sharp colleague who has never opened a terminal. No code, no implementation detail. Engineering jargon that needs a software background to parse gets replaced with plain language — but words a PM already uses (*API, workflow, platform, onboarding, automation*) are fine. The test: if a PM would understand it, keep it.
@@ -96,13 +102,15 @@ Save to `src/content/product/` with a kebab-case filename — use the `.mdx` ext
 ## How to work
 
 1. Take the topic. If it's broad, narrow to one decision or one system.
-2. Confirm a working title — it should name the outcome, not the mechanism.
-3. Identify the business pain and the cost of inaction before drafting.
-4. Draft in Tuan's voice — opinionated, direct, no filler.
-5. Write the file, then tell the user: `npm run dev` to preview, flip `draft: true` off to publish.
+2. Ask Tuan (via `AskUserQuestion`) for the real business pain or customer situation behind the hook — never assume one.
+3. Confirm a working title — it should name the outcome, not the mechanism.
+4. Identify the business pain and the cost of inaction before drafting.
+5. Draft in Tuan's voice — opinionated, direct, no filler, grounded in the real situation he gave you.
+6. Write the file, then tell the user: `npm run dev` to preview, flip `draft: true` off to publish.
 
 ## Checklist before finishing
 
+- [ ] The hook (and any concrete example) is grounded in a real situation Tuan gave via `AskUserQuestion` — nothing invented.
 - [ ] No emoji, no code blocks, no jargon that needs a software background.
 - [ ] Visual-first: the structure is carried by animated diagram components with plain-English labels, not walls of prose. File is `.mdx` with components imported; no system internals shown; no raw Mermaid unless nothing in the library fits.
 - [ ] Problem explained before the solution; pain gets more words than the fix.

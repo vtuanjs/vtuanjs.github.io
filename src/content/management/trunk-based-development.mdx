@@ -10,7 +10,7 @@ tags: ["engineering-process", "team-dynamics", "release-management", "feature-fl
 import Toggle from '../../components/diagrams/Toggle.astro';
 import Pipeline from '../../components/diagrams/Pipeline.astro';
 
-An engineer opens a PR after two weeks on a feature branch. The diff is 800 lines. Three reviewers groan. The review takes a day. Two other branches are already waiting to merge. The deploy holds its breath until someone manually checks nothing broke.
+On a learning platform I worked on, we ran on feature branches: open one per feature, merge only when it was done. Branches stayed open for weeks and grew to thousands of changed files. Two people were quietly paying for that. The manager had no visibility — the system showed no change for weeks, so there was no way to answer whether anything was actually getting done. QA had no time — the diff landed all at once right before release, and they had one sprint to catch bugs in a month's worth of invisible change.
 
 **The problem isn't that the branch got long. The problem is that the team confused "branch is merged" with "feature is released" — and let Git become the staging environment.**
 
@@ -20,11 +20,13 @@ An engineer opens a PR after two weeks on a feature branch. The diff is 800 line
 | **Why** | The instinct to protect main from incomplete work is correct. The method — keeping a long-lived branch — is wrong. It delays integration, not the release. |
 | **Goal** | Integrate continuously into a single branch. Control separately when users see the feature. |
 
+Once integration and release are separate, the manager gets a running signal of progress instead of a black box that resolves once every few weeks — merges to `develop` are visible immediately, even while the feature stays dark behind a flag. QA gets its sprint back, because code lands in small pieces continuously instead of arriving as one release-week diff. And because release is a flag flip, product decides when to expose a feature independently of when engineering finishes building it — nobody is stuck waiting on the other.
+
 ## What actually breaks
 
 The downstream effects are predictable and compound:
 
-**Review fatigue.** 800-line diffs get rubber-stamped. Nobody has bandwidth to reason carefully about 800 lines in a sitting. The reviewer is exhausted before they finish reading.
+**Review fatigue.** 800-line diffs get rubber-stamped. Nobody can reason carefully about 800 lines in one sitting. The reviewer is exhausted before they finish reading.
 
 **Conflict debt.** Every day a branch stays open, it drifts further from what's on `develop`. When it finally merges, someone — usually the author — spends a day reconciling. The longer the branch, the longer the conflict.
 

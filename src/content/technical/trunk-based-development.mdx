@@ -10,14 +10,16 @@ tags: ["git", "ci-cd", "feature-flags", "devops", "engineering-process"]
 import Pipeline from '../../components/diagrams/Pipeline.astro';
 import Toggle from '../../components/diagrams/Toggle.astro';
 
-Long-lived branches defer integration risk. By the time an 800-line branch merges, the author has lost context on both their own change and everything that moved under them on `develop`. The fix is not stricter branch hygiene — it's separating integration from release so there's no reason to hold a branch open.
+On an LMS I worked on, we used feature branches: open one per feature, merge only when the feature was done. A branch would sit open for weeks and accumulate thousands of changed files. Two people paid for that in different ways. The manager had no visibility — the system showed no change for weeks, so there was no way to answer "did we actually do anything this sprint." QA had no time — a giant diff landed all at once, right before release, and they had one sprint to catch bugs in code that had been changing invisibly for a month.
+
+Long-lived branches defer integration risk to the worst possible moment: right before release, in the largest possible batch. The fix isn't stricter branch hygiene — it's separating integration from release, so there's no reason to hold a branch open in the first place. We merge small changes to staging continuously with the flag on, and let preprod/prod run with the flag off — which buys the time to test and fix bugs before anyone flips the switch.
 
 **The core invariant: `develop` is always deployable. Whether something is released is controlled by flags, not branch state.**
 
 | | |
 |---|---|
 | **Problem** | Integration deferred to merge time means conflicts, stale context, and large blast radius per deploy. |
-| **Mechanism** | Short-lived branches, continuous integration to `develop`, feature flags for release control. |
+| **Why** | Feature branches couple "code is integrated" to "code is done" — so nothing merges until the whole feature is finished, and integration risk and review size both grow with how long that takes. |
 | **Goal** | Every merge to `develop` is tested, integrated, and safe to deploy. Release is a flag flip, not a deploy. |
 
 ## Branch strategy

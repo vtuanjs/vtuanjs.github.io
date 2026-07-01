@@ -11,14 +11,14 @@ import CompareCards from '../../components/diagrams/CompareCards.astro';
 import FanOut from '../../components/diagrams/FanOut.astro';
 import FlowChain from '../../components/diagrams/FlowChain.astro';
 
-A customer running its orders in one app asked to also run its warehouse in another — same company, one login, and let the order system hand fulfilment straight to the warehouse. A simple ask. Except each app had its own login, its own users, its own idea of what an organization was, and nothing in any of them could say these two accounts were the same company. The feature wasn't slow to build. It was impossible to build.
+A customer running its orders in one app asked to also run its warehouse in another — same company, one login, and let the order system hand fulfilment straight to the warehouse. A simple ask. I went to scope it and found each app had its own login, its own users, its own idea of what an organization was, and nothing in any of them could say these two accounts were the same company. The feature wasn't slow to build. It was impossible to build.
 
 **Identity built separately for each app can't represent the relationships the business grows into. When the business needs one of those relationships, no amount of engineering time gets you there — the model has no place to put it.**
 
 | | |
 |---|---|
-| **Problem** | We shipped three operational apps fast — orders, warehouse, transport — each with its own login, its own users, its own organizations. Then the business needed one org to span apps, one user to span orgs, and the apps to feed each other. No app owned enough of the picture to answer. |
-| **Why** | Per-app identity is the fast MVP call, and it works right up until the business stops treating the apps as independent. The relationships it can't express arrive later than the shortcut that blocks them. |
+| **Problem** | I shipped three operational apps fast — orders, warehouse, transport — each with its own login, its own users, its own organizations. Then the business needed one org to span apps, one user to span orgs, and the apps to feed each other. No app owned enough of the picture to answer. |
+| **Why** | Per-app identity was my fast MVP call, and it worked right up until the business stopped treating the apps as independent. The relationships it couldn't express arrived later than the shortcut that blocked them. |
 | **Goal** | One system owns identity, organizations, membership, and access. Every app reads from it. Relationships across apps become facts to record, not integrations to invent. |
 
 ## What consolidating unlocks
@@ -27,7 +27,7 @@ The return isn't a cleaner diagram — it's a class of product the old structure
 
 ## Why wiring the apps together doesn't hold
 
-**The instinct is to build the connection; but the thing the business is asking for isn't a connection between apps, it's a fact about identity — and no app owns identity.** When orders need to reach the warehouse, point-to-point integration works for that one link. It stops working the moment the requirement is "one company owns all three apps" or "one user belongs to two orgs." Those are properties of a customer that every app has to agree on, and you can't message your way to agreement that has no source.
+**My instinct was to build the connection; but what the business was asking for wasn't a connection between apps, it was a fact about identity — and no app owned identity.** When orders needed to reach the warehouse, point-to-point integration worked for that one link. It stopped working the moment the requirement became "one company owns all three apps" or "one user belongs to two orgs." Those are properties of a customer that every app has to agree on, and I couldn't message my way to agreement that had no source.
 
 <FlowChain
   nodes={[
@@ -38,13 +38,13 @@ The return isn't a cleaner diagram — it's a class of product the old structure
   caption="The business needs the apps to hand work to each other. Every handoff assumes both sides already agree who the customer is — and separately, none of them do."
 />
 
-So each integration re-implements "is this the same customer?" against three different answers, and every app you add multiplies the glue. You don't have an integration problem. You have an identity that lives in the wrong number of places.
+So each integration was re-implementing "is this the same customer?" against three different answers, and every app I added multiplied the glue. I didn't have an integration problem. I had an identity that lived in the wrong number of places.
 
 ## The real constraint: the org shape got baked into the data
 
-**The constraint was never technical difficulty. It was that a decision made for delivery speed silently became the shape of the product.** We built three apps because we shipped three problems independently, and the fastest path was to let each own everything it needed — users and organizations included. That independence went straight into the data model. When the business model stopped being independent — customers who wanted the whole suite, partners who wanted the apps to feed each other — the data was still shaped like three separate businesses.
+**The constraint was never technical difficulty. It was that a decision I made for delivery speed silently became the shape of the product.** I built three apps because I shipped three problems independently, and the fastest path was to let each own everything it needed — users and organizations included. That independence went straight into the data model. When the business model stopped being independent — customers who wanted the whole suite, partners who wanted the apps to feed each other — the data was still shaped like three separate businesses.
 
-Nobody ever chose "our customers can never span apps." It was chosen for us, by the shortcut, and it stayed invisible until the first request that needed the apps to know each other.
+I never chose "our customers can never span apps." It got chosen for me, by the shortcut, and it stayed invisible until the first request that needed the apps to know each other.
 
 <CompareCards
   cards={[
@@ -79,7 +79,7 @@ I built one system to own identity: who a customer is, which organizations exist
   caption="One system owns identity and the relationships between customers, orgs, and apps; every app reads from it."
 />
 
-The timing matters as much as the decision. The cost of moving identity only grows — every app you add and every user record that accumulates makes the migration heavier. The signal to consolidate is the *first* business request that needs two apps to agree on who the customer is, not the third, by which point you're rebuilding live under a deadline you've already missed. When the first cross-app relationship lands, that's the moment identity earns its own owner.
+The timing mattered as much as the decision. The cost of moving identity only grows — every app you add and every user record that accumulates makes the migration heavier. The signal to consolidate is the *first* business request that needs two apps to agree on who the customer is, not the third — I learned that by nearly missing it, rebuilding live under a deadline I'd already blown past. When the first cross-app relationship lands, that's the moment identity earns its own owner.
 
 The deep tour of each piece — what the records are, why they exist, and what breaks without them — is a separate write-up: [Identity and access management as one system](/product/introduce-iam-system).
 
@@ -91,7 +91,7 @@ The belief broke the day a routine ask — let one company use two of our apps w
 
 ## The trade-off
 
-A single owned identity system trades many small, invisible costs for one large, visible one. That's usually the right trade — a cost you can see is a cost you can manage — but it's real, and it fails in specific ways.
+A single owned identity system trades many small, invisible costs for one large, visible one. I think that's usually the right trade — a cost you can see is a cost you can manage — but it's real, and it fails in specific ways.
 
 | Benefit | Cost | Failure mode |
 |---|---|---|
@@ -99,8 +99,8 @@ A single owned identity system trades many small, invisible costs for one large,
 | No app re-implements "who is this customer" | A genuine single point of failure | The system goes down and every app degrades at once |
 | One customer, one account, one onboarding | The owning team must run like infrastructure | Staffed as a feature team, it falls behind, apps quietly keep their own copies again — recreating the fragmentation you paid to remove |
 
-The bottleneck bites first. The moment one system owns identity, every app's change to a user, an org, or a permission goes through the team that owns it — and a team funded like a feature team falls behind, at which point apps route around it and the copies come back. The fix isn't to hand ownership back; that just returns the wall. It's to run the owning team as infrastructure: capacity ahead of demand, self-service for the common changes, and a clear line between what genuinely needs the owning team and what an app team can safely do itself. Centralize what identity *is*; push the work of changing it out to the edges.
+The bottleneck bit first for me. The moment one system owns identity, every app's change to a user, an org, or a permission goes through the team that owns it — and a team funded like a feature team falls behind, at which point apps route around it and the copies come back. My fix wasn't to hand ownership back; that just returns the wall. It was to run the owning team as infrastructure: capacity ahead of demand, self-service for the common changes, and a clear line between what genuinely needs the owning team and what an app team can safely do itself. Centralize what identity *is*; push the work of changing it out to the edges.
 
 ## One decision for tomorrow
 
-Next time a product or business request needs two of your apps to know about the same customer, org, or user, stop before you scope the integration and ask one thing: is this a connection between two apps, or a relationship my identity model can't express? If it's the second, you've found the wall — and the cheapest time to move identity into one owner is that first request, not the third.
+Next time a product or business request needs two of your apps to know about the same customer, org, or user, stop before you scope the integration and ask one thing: is this a connection between two apps, or a relationship your identity model can't express? If it's the second, you've found the wall — and the cheapest time to move identity into one owner is that first request, not the third.

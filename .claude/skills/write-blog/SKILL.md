@@ -25,6 +25,10 @@ Ask yourself: **who is the intended reader, and what do they need to walk away w
 
 If the topic is ambiguous, confirm the space with the user before drafting.
 
+## Personal voice across every space
+
+Every post needs Tuan's own imprint — "When I worked in...", "I once shipped...", "On a team I led..." — not a generic tutorial voice. **Never invent the anecdote or example.** Whenever a hook, story, or concrete example is needed, use `AskUserQuestion` to get the real situation from Tuan before writing it — do not assume or fabricate one. Each space skill has the full rule under "Personal voice."
+
 ## Visual-first across every space
 
 One picture or animation beats a hundred boring words. Every space now carries its structure with the bespoke, animated diagram components in `src/components/diagrams/` (`FlowChain`, `FanOut`, `Pipeline`, `Toggle`, `LostEventTimeline`, `StepCards`, `CompareCards`, `OutboxFlow`) rather than walls of prose or plain Mermaid. Posts are `.mdx` so they can import them. Reuse a component when it fits; build a new one — namespaced `.dw-*` in `src/styles/diagrams.css`, theme-aware, reduced-motion-aware, no emoji — when the concept needs its own metaphor. Each space skill has the full catalog and rules under "Visual-first."

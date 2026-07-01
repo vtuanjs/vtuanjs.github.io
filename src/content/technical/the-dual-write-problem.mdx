@@ -14,7 +14,7 @@ import CompareCards from '../../components/diagrams/CompareCards.astro';
 
 > **Part 1 of 2.** Build the outbox by hand. In [Part 2](/technical/streaming-the-outbox-with-cdc/), change-data-capture replaces the relay.
 
-The symptom was a batch of student scores that never appeared. The submissions were in the database — every lesson recorded, timestamped, complete. But the "lesson submitted" events were never published, so the third-party scoring service never ran and those submissions sat ungraded. No exception, no failed request, no line in any log. Kafka had restarted for a few seconds and we published straight into the gap. It took a day to trace, because there was nothing to trace — the code did exactly what it was told.
+I spent a day tracing a batch of student scores that never appeared. The submissions were in the database — every lesson recorded, timestamped, complete. But the "lesson submitted" events were never published, so the third-party scoring service never ran and those submissions sat ungraded. No exception, no failed request, no line in any log. Kafka had restarted for a few seconds and we published straight into the gap. It took me a day to trace, because there was nothing to trace — the code did exactly what it was told.
 
 | | |
 |---|---|

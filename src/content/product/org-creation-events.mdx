@@ -11,7 +11,7 @@ tags: [iam, organization, architecture]
 import FanOut from '../../components/diagrams/FanOut.astro';
 import Pipeline from '../../components/diagrams/Pipeline.astro';
 
-A company signs up for the suite, a new organization is created, and the team logs in. The next morning, support gets a ticket: people can sign in to the orders app, but the warehouse app has no record of them, there's no billing account, and no default settings anywhere. The org clearly exists — that's how they logged in. It just never got set up in every app and system it's entitled to. Somewhere, a step got missed.
+On the org creation piece I own, one event does the heavy lifting: the moment a new organization is created, every app it's entitled to seeds its own masterdata automatically — config, infra, defaults, scoped to that org. I built it that way because the alternative is a checklist: create the org, then someone, or some script, walks through each app and system by hand. Skip one, and support gets a ticket the next morning — people can sign in to the orders app, but the warehouse app has no record of them, there's no billing account, no default settings anywhere. The org clearly exists — that's how they logged in. It just never got set up everywhere it needed to be.
 
 **Creating an organization should set up all of its data and config automatically, across every system — with no human running a checklist that can miss a step.**
 

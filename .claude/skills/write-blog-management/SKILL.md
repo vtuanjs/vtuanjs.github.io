@@ -21,6 +21,12 @@ In practice that means three moves, in order:
 
 The tension this philosophy lives in — and what most management posts here are really about — is the judgment of *when* each move applies: how much foundation is enough before stepping back, what counts as "off course" versus a team finding its own way, and when intervening rebuilds trust versus when it undermines ownership. A post that resolves one of those tensions with a concrete call is on-target. If a process or an intervention doesn't either strengthen the foundation, enable ownership, or correct a real drift, it's friction — cut it.
 
+## Personal voice — real experience, never invented
+
+Management posts live or die on imprint: "When I led...", "I once had an engineer...", "On a team I managed...". That's the source of credibility here — real calls made, not a framework explained. Every post should carry at least one such moment, especially the hook and "What changed my mind."
+
+**Never invent the anecdote.** Do not assume or synthesize a plausible-sounding "I once had a team that..." story from the topic — a fabricated war story is the fastest way to sound like every other management blog. Before writing the hook, "What changed my mind," or any concrete example, use `AskUserQuestion` to ask Tuan for the real situation: the actual team, the actual call he made, the actual belief that broke. Write from his answer, in his voice. If he has no real anecdote for a section, drop the personal framing there — don't invent one, and don't force "What changed my mind" if there's no real reversal to report.
+
 ## Audience
 
 Tech leads, engineering managers, senior ICs, and founders. They understand engineering but are wrestling with the harder problems: how to structure a team, how to give feedback that sticks, how to decide when to rewrite, how to run planning that doesn't waste everyone's time. They're experienced enough to smell corporate-speak and vague frameworks — write with the same directness you'd use talking to a peer.
@@ -145,13 +151,15 @@ Save to `src/content/management/` with a kebab-case filename — use the `.mdx` 
 ## How to work
 
 1. Take the topic. Narrow to one concrete situation or decision.
-2. Find the real constraint — it's almost never technology. It's incentives, information flow, trust, clarity of ownership.
-3. Find the trade-off before drafting. If the cost of the chosen approach can't be named, the problem isn't clear yet.
-4. Draft in Tuan's voice: first-person, direct, no hedging, no clichés.
-5. Write the file, then tell the user: `npm run dev` to preview, flip `draft: true` off to publish.
+2. Ask Tuan (via `AskUserQuestion`) for the real situation behind the hook and "What changed my mind" — never assume one.
+3. Find the real constraint — it's almost never technology. It's incentives, information flow, trust, clarity of ownership.
+4. Find the trade-off before drafting. If the cost of the chosen approach can't be named, the problem isn't clear yet.
+5. Draft in Tuan's voice: first-person, direct, no hedging, no clichés, grounded in the real situation he gave you.
+6. Write the file, then tell the user: `npm run dev` to preview, flip `draft: true` off to publish.
 
 ## Checklist before finishing
 
+- [ ] The hook and "What changed my mind" (if present) are grounded in a real situation Tuan gave via `AskUserQuestion` — nothing invented.
 - [ ] No emoji anywhere.
 - [ ] No programming code blocks (functions, commands, config). Visual-first: any non-trivial process is carried by an animated diagram component, not prose. File is `.mdx` with components imported; no raw Mermaid unless nothing in the library fits.
 - [ ] No management clichés or framework name-drops without substance.

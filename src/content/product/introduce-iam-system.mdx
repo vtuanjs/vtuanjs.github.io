@@ -10,7 +10,7 @@ tags: [iam, authorization, architecture]
 
 import FanOut from '../../components/diagrams/FanOut.astro';
 
-A customer runs their orders in one of your apps. They ask to run their warehouse in another — same company, one login, and let the order system hand fulfilment straight to the warehouse. It sounds like a small feature. But each app was built with its own login, its own users, its own idea of what a company is, and none of them can say these two accounts belong to the same customer. The feature isn't slow to build. It's impossible — the product has no place to record that these two accounts are one company.
+A customer running their orders in one of our apps asked to also run their warehouse in another — same company, one login, and let the order system hand fulfilment straight to the warehouse. I scoped it expecting a small feature. Instead I found each app had its own login, its own users, its own idea of what a company was, and none of them could say these two accounts belonged to the same customer. The feature wasn't slow to build. It was impossible — the product had no place to record that these two accounts were one company.
 
 <FanOut
   source={{ label: 'Are these two accounts the same company?' }}

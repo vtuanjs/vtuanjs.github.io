@@ -30,6 +30,12 @@ These words signal junior writing because they assert quality without measuring 
 
 If a claim can't be restated as a property that's true or false under a named condition, it's marketing — cut it or make it concrete.
 
+## Personal voice — real experience, never invented
+
+The thing that's missing from generic technical writing is imprint: "When I worked in...", "I once shipped...", "On a system I ran...". That's what makes a post read as lived experience instead of a tutorial. Every post should carry at least one moment like this — usually the hook, sometimes the naive-answer section or the trade-off.
+
+**Never invent the anecdote.** Do not assume, guess, or synthesize a "we once had a system that..." story from the topic alone — a fabricated war story is worse than no story; it reads as generic the moment it's not grounded in something real. Before writing a hook, example, or any story-shaped passage, use `AskUserQuestion` to ask Tuan for the real situation: what actually broke, what he actually built, what actually happened. Write from his answer, in his voice. If he has no real anecdote for a given section, drop the personal framing there rather than inventing one — a clean technical hook is fine without it.
+
 ## Post structure
 
 Every Technical post follows this arc. Drop a section if the post is better without it, but earn the omission.
@@ -158,14 +164,16 @@ Save to `src/content/technical/` as a `.mdx` file (so it can import diagram comp
 ## How to work
 
 1. Take the topic. Narrow to one defensible decision before writing.
-2. Name the constraint that forced the decision — the connection limit, the tenant count, the latency budget, the consistency requirement. Senior engineers start from constraints, not solutions; once the constraint is explicit, the trade-off and the decision both become defensible.
-3. Find the trade-off first — name what the chosen answer costs. If the cost can't be named, the problem isn't understood yet.
-4. Draft in Tuan's voice: first person, direct, opinionated, no corporate neutrality.
-5. Sanitize as you go — re-read asking: *does this reveal his system, or teach a pattern?*
-6. Write the file, then tell the user: `npm run dev` to preview, flip `draft: true` off to publish.
+2. Ask Tuan (via `AskUserQuestion`) for the real situation behind the hook and any example — never assume one. Use his actual answer, not a plausible-sounding invented scenario.
+3. Name the constraint that forced the decision — the connection limit, the tenant count, the latency budget, the consistency requirement. Senior engineers start from constraints, not solutions; once the constraint is explicit, the trade-off and the decision both become defensible.
+4. Find the trade-off first — name what the chosen answer costs. If the cost can't be named, the problem isn't understood yet.
+5. Draft in Tuan's voice: first person, direct, opinionated, no corporate neutrality, grounded in the real situation he gave you.
+6. Sanitize as you go — re-read asking: *does this reveal his system, or teach a pattern?*
+7. Write the file, then tell the user: `npm run dev` to preview, flip `draft: true` off to publish.
 
 ## Checklist before finishing
 
+- [ ] The hook (and any story-shaped example) is grounded in a real situation Tuan gave via `AskUserQuestion` — nothing invented.
 - [ ] No emoji anywhere.
 - [ ] Precise terms of art throughout; no vague analogies substituting for real mechanisms.
 - [ ] No banned vocabulary (`best practice`, `scalable`, `robust`, `production-ready`…); claims stated as measurable properties.
