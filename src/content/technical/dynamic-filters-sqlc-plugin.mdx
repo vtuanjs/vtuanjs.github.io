@@ -1,0 +1,112 @@
+---
+title: "Why AI-written dynamic filters stay inside sqlc's codegen, not an ORM"
+description: "For AI-assisted SQL, a compile-time codegen check beats a runtime query builder — why I extended sqlc's Go plugin instead of reaching for an ORM."
+date: 2026-07-01
+author: Tuan Nguyen
+draft: false
+tags: [sqlc, postgres, go, code-generation, ai-agents]
+---
+
+import FanOut from '../../components/diagrams/FanOut.astro';
+import Pipeline from '../../components/diagrams/Pipeline.astro';
+
+sqlc type-checks a query against your schema at generation time: write `nam` instead of `name`, `sqlc generate` fails before any test or request runs. That check only holds while the SQL text is fixed. The moment a query needs an optional filter — `WHERE status = $1` only when `status` is set — sqlc has no way to express "this predicate is sometimes absent," and the query falls out of the checked path. That's the query an AI agent is most likely to get wrong, and the one stock sqlc protects least.
+
+| | |
+|---|---|
+| **Problem** | An AI-authored query with optional filters can't be expressed as one static sqlc query. |
+| **Why** | sqlc compiles the exact SQL text you give it; it has no concept of a predicate that's sometimes absent. |
+| **Goal** | A bad filter fails at `sqlc generate`, not at runtime — no matter how many filters the query has. |
+
+## The naive answer leaves the checked path
+
+<FanOut
+  source={{ label: 'AI writes a list-with-filters query', note: '4 optional params' }}
+  targets={[
+    { label: 'ORM query builder', note: 'checked at execution, not generation', tone: 'fail' },
+    { label: 'Hand-built SQL string', note: 'no parameterization guarantee', tone: 'fail' },
+    { label: 'One static query per combination', note: '2^4 = 16 near-duplicate queries', tone: 'fail' },
+  ]}
+  caption="All three leave sqlc's compile-time check, or explode combinatorially inside it."
+/>
+
+An ORM's query builder type-checks against Go structs, not the schema — a hallucinated column compiles cleanly and fails only when the query runs. A hand-built SQL string has the same problem plus no guarantee the AI bound `$1` instead of interpolating a value. Enumerating one static query per filter combination stays inside sqlc, but the query count doubles per filter — four filters is sixteen near-duplicate `WHERE` clauses to keep synchronized, which is its own failure surface.
+
+## My answer: annotate the branch, let sqlc keep checking the SQL
+
+I extended [`sqlc-gen-go`](https://github.com/vtuanjs/sqlc-gen-go) to parse a comment annotation that marks a predicate as conditional, so the query stays one plain SQL statement, still fully schema-checked, and the branching moves into generated code instead of query count or a runtime builder.
+
+```sql
+-- name: ListOrders :many
+SELECT id, customer_id, status, created_at
+FROM orders
+WHERE customer_id = @customer_id
+    -- :if @status
+    AND status = @status
+    -- :if @location_ids
+    AND EXISTS (
+        SELECT 1 FROM shipments s
+        WHERE s.order_id = orders.id
+            AND s.location_id = ANY(@location_ids::text[])
+    )
+    AND deleted_at IS NULL -- :if @is_active
+ORDER BY
+    -- :if @order_by_created_at_asc
+    created_at ASC,
+    -- :if @order_by_created_at_desc
+    created_at DESC,
+    TRUE
+LIMIT @page_limit OFFSET @page_offset;
+```
+
+`status` is a one-line predicate gated by an annotation on its own line above it. `location_ids` gates an entire multi-line `EXISTS` block the same way — the annotation isn't limited to the next token, it covers the clause until the next annotation. `is_active` shows the other form: the annotation trails the line it gates. `order_by_created_at_asc`/`_desc` aren't bound to any column — each is a flag-only param, and the trailing `TRUE` keeps the `ORDER BY` syntactically valid when neither fires. `sqlc generate` type-checks all of it exactly as if these were five static queries; a typo'd column fails the same way it would with no annotations at all. What changes is the generated signature:
+
+```go
+type ListOrdersParams struct {
+    CustomerID              string
+    Status                  *string
+    LocationIDs             []string
+    IsActive                *bool
+    OrderByCreatedAtAsc     bool
+    OrderByCreatedAtDesc    bool
+    PageLimit               int32
+    PageOffset              int32
+}
+```
+
+`Status: nil` or an empty `LocationIDs` skips that clause and renumbers the remaining `$N`s. The generated function and its caller stay plain:
+
+```go
+func (q *Queries) ListOrders(ctx context.Context, db DBTX, arg ListOrdersParams) ([]ListOrdersRow, error) {
+    query, args := listOrdersDynQ.Build([]any{arg.CustomerID, arg.Status, arg.LocationIDs, arg.IsActive, arg.OrderByCreatedAtAsc, arg.OrderByCreatedAtDesc, arg.PageLimit, arg.PageOffset})
+    rows, err := db.Query(ctx, query, args...)
+    // scan into []ListOrdersRow, same as any sqlc-generated method
+}
+
+// usecase — only sets the filters it needs, leaves the rest nil/zero
+rows, err := queries.ListOrders(ctx, db, ListOrdersParams{CustomerID: id, OrderByCreatedAtDesc: true, PageLimit: 20})
+```
+
+The usecase never sees the annotation or the stripping — it fills a struct, the same way it would for a static query.
+
+<Pipeline
+  steps={[
+    { label: 'AI writes one annotated query', note: '-- :if @param marks the optional predicate' },
+    { label: 'sqlc generate: schema + type check', note: 'same check as any static query' },
+    { label: 'fails → error → AI retries', tone: 'fail', note: 'wrong column, bad annotation, type mismatch' },
+    { label: 'passes → typed Go, filter-stripping compiled in', tone: 'ok' },
+  ]}
+  caption="The loop is the point: a wrong query fails sqlc generate, not a request in staging."
+/>
+
+This loop is the actual feedback mechanism: the agent runs `sqlc generate`, gets a specific compiler-style error on a bad reference, fixes the query, reruns — the same edit-compile-fix cycle you'd want for any generated code, now covering conditional queries instead of only static ones. Nothing about the annotation opens a second, unchecked path; it's parsed by the same invocation that already fails on a bad column.
+
+## The trade-off
+
+| Cost | Forces |
+|---|---|
+| **Not portable sqlc** | `-- :if` is this plugin's grammar — maintaining a fork, merging upstream by hand |
+| **A parser you now trust** | The annotation parser rewrites SQL before the driver sees it — its bugs sit in the trusted path |
+| **Amortizes only with volume** | Not worth it below two or three dynamic-filter queries |
+
+I'd choose differently below that volume, or the moment upstream sqlc ships native conditional predicates — at that point a fork costs more than the query duplication it replaced.
