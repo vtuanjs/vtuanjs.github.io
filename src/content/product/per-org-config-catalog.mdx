@@ -1,0 +1,62 @@
+---
+title: "Per-tenant settings need a typed catalog, and they are not feature flags"
+description: "Custom per-organization values belong in a governed catalog of typed keys — permanent, validated, key-value config — kept strictly separate from temporary rollout flags."
+date: 2026-07-05
+author: Tuan Nguyen
+draft: true
+---
+
+import Pipeline from '../../components/diagrams/Pipeline.astro';
+
+On the same enterprise LMS from the flag post — every customer runs a different operation and wants a feature the others don't, or a threshold set differently for them. Before org config existed, the only way to do that was to check the customer's identity right inside the logic: `if org == "that one school", passing score = 80, else 60`. Every custom term a customer negotiated meant one more check like that, buried somewhere in the product.
+
+**Behavior should differ across customers because of a value someone set, not because of a check someone wrote.**
+
+| | |
+|---|---|
+| **Problem** | To give one customer a different threshold or feature, someone writes a check for that customer's identity, directly in the logic. |
+| **Why** | There's no place to hold "this customer's value" separate from "this customer's identity," so the identity itself becomes the switch. |
+| **Goal** | A customer's custom behavior comes from a value configured for them — the logic itself never has to change. |
+
+## Why it matters
+
+Every one of those checks is the product promising to remember one customer, by name, forever, in that exact spot. Multiply that by every customer who's ever negotiated a term, scattered across however many places that logic runs, and nobody can answer "what's different about this customer" without hunting through the product and hoping they found every spot. Miss one, and the customer who's supposed to pass at 80 gets graded at 60 wherever it was missed. Onboarding the next customer means finding that logic again and adding one more check beside the last.
+
+## Give the org a value, not an identity check
+
+**The product asks "what's this customer's value for this setting," never "which customer is this."**
+
+Org config replaces the identity check with a lookup. A catalog declares what's configurable and its type — passing score is a number, a feature is on or off, a currency is one of a fixed set. Each customer gets their own value for whatever applies to them; anyone who never negotiated a term gets the platform default. The logic that grades a submission or shows a feature never mentions a specific customer — it asks for this customer's current value and behaves accordingly, whoever they are.
+
+<Pipeline
+  title="Grading a submission, with and without org config"
+  steps={[
+    { label: 'Without config: if org == "that one school"...', tone: 'fail', note: 'a new customer means a new check here' },
+    { label: 'With config: get passing score for this org' },
+    { label: 'Their configured value answers, e.g. 80', tone: 'ok' },
+    { label: 'Every customer is graded through this same step' },
+  ]}
+  caption="The second step never changes when a new customer signs. Only the value looked up does."
+/>
+
+**Benefit:** onboarding a customer's negotiated term becomes setting a value, not changing the product's logic.
+
+## Keep the contract term out of the flag drawer
+
+**A feature flag disappears once its rollout is done. A customer's contract term doesn't — it lives as long as the contract does.**
+
+It's tempting to reach for the flag system, since it already lets you turn something on or off per customer. But a flag exists to be deleted, covered in the earlier post on shipping dark and releasing on purpose. A contract term exists to last. Put it behind a flag, and it either gets swept up in a cleanup meant for rollout scaffolding, or the flag system fills up with switches nobody dares delete. One rule: temporary and on/off is a flag; permanent and per-customer is config.
+
+## The trade-off
+
+| | Check the customer's identity in the logic | Catalog + per-customer values |
+|---|---|---|
+| Onboarding a custom term | Find the logic, add a check, ship it | Set a value |
+| "What's different about this customer?" | Search the product and hope you found it all | Read their configured values |
+| Risk of missing a spot | High, one check per place the logic runs | None, one lookup everywhere |
+
+The cost lands on engineering up front: a catalog has to exist before the first value is stored in it. It pays for itself by the third or fourth customer with a custom term — the alternative is a product riddled with identity checks only the person who wrote each one fully understands.
+
+## What's next
+
+The earlier post on shipping dark covers the flag side of this boundary. Together, the rule is: if it's part of what the product does for a customer for the life of their contract, it's config; if it's here to stage a release, it's a flag.

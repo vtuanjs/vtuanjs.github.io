@@ -1,0 +1,57 @@
+---
+title: "The feature flag is the seam between merged and released"
+description: "In trunk-based development, code ships to production dark and the flag decides when it's live. Per-org targeting is what lets you pilot with a few customers before everyone."
+date: 2026-07-04
+author: Tuan Nguyen
+draft: false
+image: /images/iam-feature-flag.png
+---
+
+import Toggle from '../../components/diagrams/Toggle.astro';
+
+On an enterprise LMS I worked on — teachers running lessons, students submitting work — the contract forbade breaking the service, and it named the only windows a release could happen in. We still wanted to test in staging and preprod the day code was ready. So a merge could no longer mean a release. A feature flag is what splits the two apart. (A different system from the identity posts on this blog, which were built git-based.)
+
+**A release should be reversible in seconds, and separate from the moment the code was written.**
+
+Trunk-based development needs this: engineering merges continuously, but the contract decides when anyone sees the result. (For the org-targeting side of flags, see the sibling post on organization-scoped feature flags; for the engineering mechanics, see [Trunk-based development: a coordination problem, not a Git problem](/management/trunk-based-development/).)
+
+| | |
+|---|---|
+| **Problem** | Engineering wants to merge finished work daily, but a real feature takes weeks — and a contract only allows release at named windows. |
+| **Why** | "Merged" and "released" get treated as the same event, forcing a choice between holding work back or releasing on a date nobody chose. |
+| **Goal** | New work reaches production the day it's ready, dormant, and only becomes visible when someone deliberately decides it should. |
+
+## Why it matters
+
+A contract that names the exact times a release is allowed makes the stakes explicit: a break outside those terms isn't a bad week, it's a broken promise. That forces the question early — there's no slack in the calendar to absorb a surprise found the night before a release window. The only way to move fast without gambling on the release date is to make "tested in a production-like environment" and "visible to the customer" two separate events, decided by two different people, at two different times.
+
+## Ship it dark, release it on purpose
+
+**A feature flag is a switch, not a deploy — flipping it decides who sees the change, not whether the code exists.**
+
+While the flag is off, the code runs in production, dormant, next to everything else. Engineering integrates a change the day it's ready; the business decides, separately, when it goes live.
+
+<Toggle
+  flagName="new lesson feature"
+  offTitle="flag off"
+  offText="Deployed to preprod, tested against real-like activity. No teacher or student sees it."
+  onTitle="flag on at the contract window"
+  onText="The same code, now visible — turned on exactly when the contract allows it."
+  caption="Nothing changes in the code between these two states. Only the switch changes."
+/>
+
+**Benefit:** the team ships every day without every day being a release event for the business.
+
+## The trade-off
+
+| | Wait until finished, release to everyone | Ship dark, release on the contract window |
+|---|---|---|
+| Speed of integration | New work waits off to the side, sometimes for weeks | New work ships the day it's ready |
+| Undoing a mistake | A new release, a wait, a public rollback | A switch flipped, in effect within minutes |
+| What it costs | Integration pain, high-stakes launches | Discipline to remove flags once released |
+
+The cost lands on engineering, not the customer: every flag is code that has to be maintained until someone actually removes it. Skip that discipline and the codebase fills up with switches nobody remembers the purpose of. That's a cost paid in cleanup, on your own schedule. The alternative — a broken contract discovered by the customer — isn't.
+
+## What's next
+
+The next post makes the case for the organization as the right thing a flag targets — not a percentage, not a user, but the customer you're actually piloting and selling to.
