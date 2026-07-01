@@ -149,7 +149,9 @@ a:hover { text-decoration: underline; }
   border-radius: 8px;
   color: var(--ink);
 }
-.post-nav-link:hover { border-color: var(--accent); text-decoration: none; }
+@media (hover: hover) {
+  .post-nav-link:hover { border-color: var(--accent); text-decoration: none; }
+}
 .post-nav-link.next { text-align: right; }
 .post-nav-label { font-size: .8rem; color: var(--muted); }
 .post-nav-title { font-weight: 600; }
@@ -170,7 +172,9 @@ a:hover { text-decoration: underline; }
   color: var(--muted);
   line-height: 1.4;
 }
-.tag:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+@media (hover: hover) {
+  .tag:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+}
 
 /* Search */
 .search-form { display: flex; gap: .5rem; margin-bottom: 2rem; }
