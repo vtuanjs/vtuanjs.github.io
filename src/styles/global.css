@@ -131,6 +131,8 @@ a:hover { text-decoration: underline; }
 .post-content th { border-bottom: 2px solid var(--line); }
 .post-content td { border-bottom: 1px solid var(--line); }
 
+.post-comments { margin-top: 2rem; }
+
 /* Prev / next post navigation */
 .post-nav {
   display: grid;

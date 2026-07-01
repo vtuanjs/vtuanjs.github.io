@@ -47,6 +47,22 @@ const t = UI;
     <div class="post-content">
       <slot />
     </div>
+    {(prev || next) && (
+      <nav class="post-nav" aria-label="Post navigation">
+        {prev ? (
+          <a class="post-nav-link prev" href={prev.href}>
+            <span class="post-nav-label">{t.prevPost}</span>
+            <span class="post-nav-title">{prev.title}</span>
+          </a>
+        ) : <span />}
+        {next ? (
+          <a class="post-nav-link next" href={next.href}>
+            <span class="post-nav-label">{t.nextPost}</span>
+            <span class="post-nav-title">{next.title}</span>
+          </a>
+        ) : <span />}
+      </nav>
+    )}
     <div class="post-comments">
       <script src="https://giscus.app/client.js"
         data-repo="vtuanjs/vtuanjs.github.io"
@@ -65,21 +81,5 @@ const t = UI;
         async>
       </script>
     </div>
-    {(prev || next) && (
-      <nav class="post-nav" aria-label="Post navigation">
-        {prev ? (
-          <a class="post-nav-link prev" href={prev.href}>
-            <span class="post-nav-label">{t.prevPost}</span>
-            <span class="post-nav-title">{prev.title}</span>
-          </a>
-        ) : <span />}
-        {next ? (
-          <a class="post-nav-link next" href={next.href}>
-            <span class="post-nav-label">{t.nextPost}</span>
-            <span class="post-nav-title">{next.title}</span>
-          </a>
-        ) : <span />}
-      </nav>
-    )}
   </article>
 </BaseLayout>
