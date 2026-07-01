@@ -14,26 +14,31 @@ import CompareCards from '../../components/diagrams/CompareCards.astro';
 
 > **Part 1 of 2.** Build the outbox by hand. In [Part 2](/technical/streaming-the-outbox-with-cdc/), change-data-capture replaces the relay.
 
-The symptom was a customer email that never arrived. The order was in the database, paid and confirmed. But the "order placed" event was never published, so the email service never ran. No exception, no failed request, no line in any log. The code did exactly what it was told.
+The symptom was a batch of student scores that never appeared. The submissions were in the database — every lesson recorded, timestamped, complete. But the "lesson submitted" events were never published, so the third-party scoring service never ran and those submissions sat ungraded. No exception, no failed request, no line in any log. Kafka had restarted for a few seconds and we published straight into the gap. It took a day to trace, because there was nothing to trace — the code did exactly what it was told.
 
 | | |
 |---|---|
-| **Problem** | You write to the DB *and* publish to a broker in one operation. One eventually fails — silently. |
+| **Problem** | You write the submission to the DB *and* publish its event to Kafka in one operation. One eventually fails — silently. |
 | **Why** | They're two separate systems with no shared transaction. Nothing makes both succeed together. |
-| **Goal** | "Data saved" and "event published" become all-or-nothing — using only the DB we already trust. |
+| **Goal** | "Submission saved" and "event published" become all-or-nothing — using only the DB we already trust. |
 
 <LostEventTimeline
+  source="App"
+  okNode="DB"
+  okNote="submission committed"
+  failNode="Kafka"
+  failNote="scoring event never arrives"
   caption="No exception. No failed request. No line in any log."
-  label="The order commits to the database, but the published event is silently lost before it reaches the broker — no exception, no log."
+  label="The submission commits to the database, but the published scoring event is silently lost before it reaches Kafka — no exception, no log."
 />
 
 Here is what the code was told to do:
 
 ```go
 tx, _ := db.Begin()
-tx.Exec("INSERT INTO orders ...")
-tx.Commit()                          // succeeds
-broker.Publish("orders.created", e)  // network blips, broker is mid-restart — lost
+tx.Exec("INSERT INTO submissions ...")
+tx.Commit()                             // succeeds
+broker.Publish("lesson.submitted", e)   // Kafka is mid-restart — lost
 ```
 
 The commit and the publish are two independent operations against two independent systems. Most of the time both succeed. But "most of the time" is the property that makes this dangerous: it passes every test, ships to production, and fails weeks later under a broker restart or a network blip. The failure raises no error — committed data, no event, nothing in any log to trace it. You can't alert on an exception that never fires.
@@ -50,7 +55,7 @@ The instinct is to move the publish *inside* the transaction so they "succeed to
         { ok: true, text: 'publish(event) succeeds' },
         { ok: false, text: 'commit fails' },
       ],
-      note: 'ghost event — you announced an order that never existed, and a downstream service charges a card or reserves stock for a phantom',
+      note: 'ghost event — you announced a submission that never persisted, and the scoring service computes and stores a grade for work that does not exist',
     },
     {
       title: 'commit → publish',
@@ -63,32 +68,37 @@ The instinct is to move the publish *inside* the transaction so they "succeed to
   ]}
 />
 
-**No ordering of these two statements is atomic, because the broker has no idea your transaction exists.** Publish-then-commit and the commit fails? You've announced an order that doesn't exist — now a downstream service charges a card or reserves stock for a phantom. Commit-then-publish and the publish fails? You're back to the original silent-loss bug. There is no third ordering. You're trying to make two systems agree without anything that can hold them to the agreement.
+**No ordering of these two statements is atomic, because the broker has no idea your transaction exists.** Publish-then-commit and the commit fails? You've announced a submission that doesn't exist — now the scoring service grades a phantom and stores a result nobody can trace back to real work. Commit-then-publish and the publish fails? You're back to the original silent-loss bug. There is no third ordering. You're trying to make two systems agree without anything that can hold them to the agreement.
 
 ## The real problem
 
-What you actually want is one transaction spanning the database *and* the broker — commit both or neither. That's distributed atomicity, and the textbook tool is two-phase commit (2PC): a coordinator asks every participant to "prepare," and only if all vote yes does it tell them to commit. It's worth being precise about why I don't reach for it here:
+Every ordering fails because the two writes aren't one transaction. So make them one: get a single "commit both or neither" across Postgres *and* Kafka. That property has a name — distributed atomicity — and a textbook tool, **two-phase commit (2PC)**. A coordinator asks every participant to *prepare*; only if all of them vote yes does it tell them to *commit*. On paper, exactly what we want.
 
-- **The broker usually can't play.** Kafka transactions are for atomic writes *within* Kafka, not a cross-system prepare/commit handshake with your Postgres. The two simply don't share a transaction manager.
-- **It couples your availability to your least reliable participant.** Under 2PC your write path is only as available as the slowest, flakiest member. If the broker is down, your *database writes* now block on it. You've taken your most reliable system and made it fail whenever your least reliable one does.
-- **The coordinator is a new failure mode you now operate.** A coordinator that dies after "prepare" but before "commit" leaves participants holding locks, waiting. Now you own a coordinator, its persistence, and its recovery story.
+I don't reach for it. Three reasons, each one enough on its own:
 
-So the real problem isn't "how do I do 2PC well." It's sharper than that: **how do I get atomicity using only the one transactional system I already trust — the database — and stop pretending the broker can participate at all.**
+- **Kafka can't actually play.** 2PC needs every participant to speak the prepare/commit protocol and share a transaction manager. Kafka's transactions are for atomic writes *within* Kafka — they don't hook into your Postgres transaction. There is no coordinator both systems will answer to, so the handshake never gets off the ground.
+- **You'd chain your writes to your flakiest system.** Under 2PC a write succeeds only when *every* participant is up. So the moment Kafka is down — the exact restart that started this whole story — your *database writes* block too. You'd have taken your most reliable system and made it fail whenever your least reliable one does. That's backwards.
+- **You'd be running a new thing that can break.** The coordinator is itself a process with state. If it dies after "prepare" but before "commit," participants sit holding locks, waiting for a verdict that never comes. Now you operate the coordinator, its storage, and its recovery — a new failure mode you didn't have before.
+
+So the real question isn't "how do I do 2PC well." It's sharper: **how do I get atomicity using only the one transactional system I already trust — the database — and stop pretending Kafka can take part at all?**
 
 ## The outbox: one commit, one source of truth
 
 Write the event into the *same database*, in the *same transaction*, as the data change. A separate process reads those rows later and publishes them. The database commit becomes the single fact that has to be true; publishing is downstream of a row that already exists.
 
-<OutboxFlow />
+<OutboxFlow
+  rows={['INSERT submission', 'INSERT outbox row']}
+  brokerLabel="Kafka"
+/>
 
 ```go
 tx, _ := db.Begin()
-tx.Exec("INSERT INTO orders ...")
-tx.Exec("INSERT INTO outbox (topic, payload) VALUES ($1, $2)", "orders.created", event)
+tx.Exec("INSERT INTO submissions ...")
+tx.Exec("INSERT INTO outbox (topic, payload) VALUES ($1, $2)", "lesson.submitted", event)
 tx.Commit() // both rows land, or neither does
 ```
 
-The whole trick lives in that single `Commit()`. The event and the data are now governed by **one** atomic operation: if the order saves, the event row exists; if the transaction rolls back, the event was never written. There is no window where one is true and the other isn't. The relay can then crash, get redeployed, run behind — and lose nothing, because unpublished rows simply sit in the table until something drains them. You've converted an unsolvable two-system problem into an ordinary one-table read, which is a problem databases are extremely good at.
+The whole trick lives in that single `Commit()`. The event and the data are now governed by **one** atomic operation: if the submission saves, the event row exists; if the transaction rolls back, the event was never written. There is no window where one is true and the other isn't. The relay can then crash, get redeployed, run behind — and lose nothing, because unpublished rows simply sit in the table until something drains them. You've converted an unsolvable two-system problem into an ordinary one-table read, which is a problem databases are extremely good at.
 
 Working implementation (Go + Postgres): [github.com/vtuanjs/blog-demo/tree/main/outbox-polling](https://github.com/vtuanjs/blog-demo/tree/main/outbox-polling).
 
@@ -102,7 +112,7 @@ The outbox isn't free. The cost comes in three parts, and naming them is the poi
 | **Ordering is now your job** | A multi-worker relay reorders events under concurrency | Single writer per key — which caps throughput |
 | **Latency + a moving part** | Events ship on the poll interval, not instantly; the relay is a process to run | Monitor outbox backlog; alert when it grows |
 
-The first one matters most. At-least-once isn't a flaw I'm tolerating — it's the *correct* default. The alternative, marking the row published *before* you publish, gives you at-most-once, which silently drops events: the exact bug we started with. But it pushes a hard requirement downstream: **every consumer must be idempotent.** If a duplicate "order placed" charges a card twice, you haven't solved your problem — you've moved it into someone else's service. (Its own post: idempotency keys and dedup windows.)
+The first one matters most. At-least-once isn't a flaw I'm tolerating — it's the *correct* default. The alternative, marking the row published *before* you publish, gives you at-most-once, which silently drops events: the exact bug we started with. But it pushes a hard requirement downstream: **every consumer must be idempotent.** If a duplicate "lesson submitted" makes the scoring service grade — and bill the third-party API for — the same submission twice, you haven't solved your problem — you've moved it into someone else's service. (Its own post: idempotency keys and dedup windows.)
 
 I still reach for the outbox almost every time, because of *which* failure each side leaves you with. Without it: committed data, lost event, no error, nothing in the logs to trace. With it: an occasional duplicate, which a dedup key turns into a no-op. **I will take a duplicate I can dedupe over a silent drop I can't even detect, every single time.**
 
@@ -111,7 +121,7 @@ I still reach for the outbox almost every time, because of *which* failure each 
     {
       tone: 'bad',
       title: 'without the outbox',
-      text: 'Committed data, a lost event, no error, nothing in the logs to trace it.',
+      text: 'Committed submission, a lost scoring event, no error, nothing in the logs to trace it.',
       tag: "a silent drop you can't even detect",
     },
     {

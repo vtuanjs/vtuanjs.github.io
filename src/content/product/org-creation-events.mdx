@@ -11,7 +11,7 @@ tags: [iam, organization, architecture]
 import FanOut from '../../components/diagrams/FanOut.astro';
 import Pipeline from '../../components/diagrams/Pipeline.astro';
 
-A company signs up, a new organization is created, and the team logs in. The next morning, support gets a ticket: people can sign in, but there's no billing account, no plan, no default settings. The org clearly exists — that's how they logged in. Its data and config were never set up everywhere else. Somewhere, a step got missed.
+A company signs up for the suite, a new organization is created, and the team logs in. The next morning, support gets a ticket: people can sign in to the orders app, but the warehouse app has no record of them, there's no billing account, and no default settings anywhere. The org clearly exists — that's how they logged in. It just never got set up in every app and system it's entitled to. Somewhere, a step got missed.
 
 **Creating an organization should set up all of its data and config automatically, across every system — with no human running a checklist that can miss a step.**
 
@@ -19,7 +19,7 @@ This is part 2 of the series. Part 1 introduced the five pieces; this part is th
 
 | | |
 |---|---|
-| **Problem** | Creating an org means setting it up in many systems — billing, settings, analytics. Whoever runs that checklist can miss a step, and the org is left half-created. |
+| **Problem** | Creating an org means setting it up across every app it's entitled to and every supporting system — orders, warehouse, billing, settings. Whoever runs that checklist can miss a step, and the org is left half-created. |
 | **Why** | The setup isn't automatic. It depends on a person, or on code calling each system in turn, and any one call can fail silently. |
 | **Goal** | One action creates the org and provisions all its data and config automatically. No human checklist, nothing to miss. |
 
@@ -31,7 +31,7 @@ A half-created org is the worst kind of bug: nothing looks broken — no error, 
 
 **The moment an org is created, every system that needs it sets up its own data and config — no one calls them, no one ticks a box.**
 
-When a new org is created, it publishes a single event — an "organization created" notification, the same idea as a webhook. Every other system subscribes: billing, settings, analytics, anything else. When the event fires, each one provisions its own piece — including default config: currency, plan, formats, limits. The org doesn't know who is listening — it announces the fact once, and the listeners do the rest.
+When a new org is created, it publishes a single event — an "organization created" notification, the same idea as a webhook. Every app it's entitled to and every supporting system subscribes: the orders app, the warehouse app, billing, settings, anything else. When the event fires, each one provisions its own piece — including default config: currency, plan, formats, limits. The org doesn't know who is listening — it announces the fact once, and the listeners do the rest.
 
 No checklist, no step to forget. A system that's briefly down picks up the event when it recovers. And because config is seeded instead of hand-entered, every org starts from the same correct baseline — no typos, no drift, no org set up slightly differently and behaving wrong in a way no one notices until a customer does. Anything genuinely org-specific is changed deliberately afterward, not reconstructed from memory at signup.
 
@@ -44,9 +44,10 @@ One action fires one event; every system that needs the org sets itself up on it
 <FanOut
   source={{ label: 'organization created', note: 'one event, published once' }}
   targets={[
+    { label: 'Orders app', note: 'provisions the org', tone: 'ok' },
+    { label: 'Warehouse app', note: 'provisions the org', tone: 'ok' },
     { label: 'Billing', note: 'sets up the account', tone: 'ok' },
     { label: 'Settings', note: 'seeds default config', tone: 'ok' },
-    { label: 'Analytics', note: 'registers the org', tone: 'ok' },
   ]}
   caption="The org doesn’t know who is listening. It announces the fact once; the listeners do the rest."
 />

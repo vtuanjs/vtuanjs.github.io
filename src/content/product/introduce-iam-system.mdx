@@ -10,35 +10,35 @@ tags: [iam, authorization, architecture]
 
 import FanOut from '../../components/diagrams/FanOut.astro';
 
-A customer is locked out of a feature they pay for. Support escalates to engineering. Both logs say the customer has access. No error, no recent change. You can't find the bug because every part of the product is keeping its own answer to "who is this customer and what can they do?" — and those answers drifted apart.
+A customer runs their orders in one of your apps. They ask to run their warehouse in another — same company, one login, and let the order system hand fulfilment straight to the warehouse. It sounds like a small feature. But each app was built with its own login, its own users, its own idea of what a company is, and none of them can say these two accounts belong to the same customer. The feature isn't slow to build. It's impossible — the product has no place to record that these two accounts are one company.
 
 <FanOut
-  source={{ label: 'Can this customer do X?' }}
+  source={{ label: 'Are these two accounts the same company?' }}
   targets={[
-    { label: 'Billing says yes', tone: 'fail' },
-    { label: 'Support says no', tone: 'fail' },
-    { label: 'The app says maybe', tone: 'fail' },
+    { label: 'Orders app: account #4471', tone: 'fail' },
+    { label: 'Warehouse app: no such customer', tone: 'fail' },
+    { label: 'Transport app: a different org', tone: 'fail' },
   ]}
-  caption="Ask in three places, get three answers. That gap is the bug."
+  caption="Ask each app who the customer is, get three unrelated answers. Nothing in the product knows they're one company."
 />
 
-**The fix is one system that owns these decisions, and one rule for everyone else: get the answer from there, never invent your own.**
+**The fix is one system that owns identity — who a customer is, who belongs to them, and what each is allowed to do — that every app reads from instead of keeping its own copy.**
 
 This is the first post in a series on building that system. This part frames the problem and introduces the five pieces; later parts go deep on each one.
 
 | | |
 |---|---|
-| **Problem** | Each part of the product keeps its own copy of who a customer is, what they can do, and how they're configured — and the copies diverge. |
-| **Why** | There is no single source of truth. Every team builds what they need, and the gaps show up as customer-facing bugs. |
-| **Goal** | One system owns these decisions. Every other part of the product reads from it, so the answer is always the same. |
+| **Problem** | Each app keeps its own copy of who a customer is, what they can do, and how they're configured. A relationship that spans apps — one company across two of them, one login, one connection — has nowhere to live. |
+| **Why** | Every app was shipped fast, on its own, owning everything it needed. That independence went straight into the data, and the business only outgrew it later — the first time two apps had to agree on who a customer is. |
+| **Goal** | One system owns identity. Every app reads from it, so the answer is always the same — and relationships across apps become facts to record, not integrations to invent. |
 
 ## Why it matters
 
-When different parts of the product disagree about a customer, the customer feels it — locked out of something they pay for, charged the wrong price, or onboarded into a broken state they can't explain and support can't fix. The cause is always the same: two places each stored "what this customer can do," and they drifted.
+The cost isn't a messier codebase. It's a class of product you can't sell. You can't offer one account that works across every app, because no app can say two accounts are the same company. You can't let one app feed another, because neither agrees on who the customer is. Onboarding a customer onto the full suite is three separate setups that have to be kept in step by hand, and every cross-app feature the business asks for hits the same wall: the relationship it depends on has nowhere to live.
 
-The business cost compounds quickly. Support tickets increase. Engineering spends time on bugs that have no single owner. Launching a new feature becomes a coordination effort across teams instead of flipping one switch. Onboarding a new customer requires a dozen separate actions — miss one and something breaks.
+It compounds with every app you add. Each new app is one more copy of the customer, one more answer that can disagree with the others, one more integration to hand-build the next time two apps have to know about the same company.
 
-Centralizing these decisions doesn't add complexity. It removes the hidden complexity that was already there, spread across every team's codebase.
+Centralizing identity doesn't add complexity. It removes the hidden complexity that was already there, spread across every app that kept its own copy.
 
 ## The five pieces
 
@@ -48,7 +48,7 @@ Centralizing these decisions doesn't add complexity. It removes the hidden compl
 </figure>
 
 <FanOut
-  source={{ label: 'IAM', note: 'one owner of the answer' }}
+  source={{ label: 'IAM', note: 'one owner of identity' }}
   targets={[
     { label: 'Organization', note: 'one customer record', tone: 'accent' },
     { label: 'User', note: 'who, and what they can do', tone: 'accent' },
@@ -123,16 +123,16 @@ Centralizing these decisions doesn't add complexity. It removes the hidden compl
 
 Centralizing these decisions is not free.
 
-| | Each team decides on their own | One shared system |
+| | Each app owns its own identity | One shared system |
 |---|---|---|
-| "Can this customer do X?" | Different answer depending on who you ask | One answer, everywhere |
-| Onboarding a new customer | Each team provisions separately — easy to miss one | One action, everything follows |
-| Launching for select customers | Re-built in each product area | One targeting list |
-| Consistency across the product | Varies | Same everywhere |
-| Risk if the system is down | Isolated to one area | Broader impact |
+| "Are these accounts the same company?" | A different answer in each app, if any | One answer, everywhere |
+| Selling the full suite | Three separate accounts to keep in step | One account across every app |
+| Connecting one app to another | Hand-built integration each time | A relationship to record, not invent |
+| Onboarding a new customer | Each app provisions separately — easy to miss one | One action, everything follows |
+| Risk if the system is down | Isolated to one app | Broader impact |
 
 The real cost is concentration: if this system has a problem, more of the product feels it. That's a real risk, and it's managed deliberately — not ignored.
 
-But the scattered model doesn't avoid this cost. It hides it as bugs you discover in production, one confused customer at a time. A single owner makes the answer a fact instead of a guess.
+But the per-app model doesn't avoid this cost. It hides it as features you can't ship and integrations you rebuild by hand, one cross-app request at a time. A single owner makes the answer a fact instead of a guess.
 
 Part 2 starts with the organization: what actually happens when a new customer is created, and why getting it wrong shows up so late.

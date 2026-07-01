@@ -1,6 +1,6 @@
 ---
-title: "Who owns the answer when the answer is wrong?"
-description: "Three teams, three answers about one customer. When shared data has no single owner, the copies drift — and no one owns the fix."
+title: "Three logins were the right call — until the apps had to know each other"
+description: "Each app shipped with its own login to move fast. Then the business needed one org across apps, one user across orgs, systems that connect — and separate identity couldn't express any of it."
 date: 2026-06-30
 author: Tuan Nguyen
 draft: false
@@ -9,78 +9,98 @@ tags: [team-design, ownership, infrastructure]
 
 import CompareCards from '../../components/diagrams/CompareCards.astro';
 import FanOut from '../../components/diagrams/FanOut.astro';
+import FlowChain from '../../components/diagrams/FlowChain.astro';
 
-A customer escalates to support. Support escalates to engineering. Three teams pull their logs — each system says something different about whether this customer has access. One says active, one says locked, one says no record. The bug isn't in any single team's code. The bug is that three teams each made a local copy of the same truth, and the copies drifted apart.
+A customer running its orders in one app asked to also run its warehouse in another — same company, one login, and let the order system hand fulfilment straight to the warehouse. A simple ask. Except each app had its own login, its own users, its own idea of what an organization was, and nothing in any of them could say these two accounts were the same company. The feature wasn't slow to build. It was impossible to build.
 
-**Shared data without a single owner is not shared — it's duplicated, and duplicated data drifts.**
+**Identity built separately for each app can't represent the relationships the business grows into. When the business needs one of those relationships, no amount of engineering time gets you there — the model has no place to put it.**
 
 | | |
 |---|---|
-| **Problem** | Customer identity, permissions, and configuration are maintained independently by each team that needs them. Each copy is internally consistent; inconsistency only surfaces at customer boundaries. |
-| **Why** | Building locally is faster — no coordination, no dependency on another team. The cost doesn't appear until a customer feels it, usually at the worst moment. |
-| **Goal** | One system owns these decisions. Every other team reads from it; none maintain their own copy. |
+| **Problem** | We shipped three operational apps fast — orders, warehouse, transport — each with its own login, its own users, its own organizations. Then the business needed one org to span apps, one user to span orgs, and the apps to feed each other. No app owned enough of the picture to answer. |
+| **Why** | Per-app identity is the fast MVP call, and it works right up until the business stops treating the apps as independent. The relationships it can't express arrive later than the shortcut that blocks them. |
+| **Goal** | One system owns identity, organizations, membership, and access. Every app reads from it. Relationships across apps become facts to record, not integrations to invent. |
 
-## What one owner buys you
+## What consolidating unlocks
 
-When one system holds the authoritative answer to who a customer is and what they can do, a whole class of bugs disappears — the ones with no natural owner. Onboarding becomes one action instead of a coordinated checklist across teams. Feature launches stop waiting on every team to update its copy. Support answers from one place instead of escalating. The win isn't cleaner architecture; it's that nobody has to keep copies in sync anymore, because there is only one.
+The return isn't a cleaner diagram — it's a class of product the old structure couldn't ship. The business can sell one account that works across every app. Partners can wire one app's output into another's input. Onboarding a customer becomes one action instead of three that have to be kept in step. The team stops being blocked from building cross-app features at all, because the relationships those features depend on finally have a place to live.
 
-## Why the bug has no owner
+## Why wiring the apps together doesn't hold
 
-Each team's copy is correct in its own context — the tests pass, the API returns what it should. The inconsistency only appears when two systems' answers meet, which happens at a customer boundary, so the first signal is a customer-facing bug. And when it surfaces, every team is nominally responsible, which means none of them actually is: the team that caught the escalation patches its copy and moves on, and the others stay wrong until they cause their own incident. The cause sits between teams, where no single team owns it.
+**The instinct is to build the connection; but the thing the business is asking for isn't a connection between apps, it's a fact about identity — and no app owns identity.** When orders need to reach the warehouse, point-to-point integration works for that one link. It stops working the moment the requirement is "one company owns all three apps" or "one user belongs to two orgs." Those are properties of a customer that every app has to agree on, and you can't message your way to agreement that has no source.
+
+<FlowChain
+  nodes={[
+    { label: 'Orders', note: 'order placed', tone: 'accent' },
+    { label: 'Warehouse', note: 'pick and pack', tone: 'accent' },
+    { label: 'Transport', note: 'dispatch', tone: 'accent' },
+  ]}
+  caption="The business needs the apps to hand work to each other. Every handoff assumes both sides already agree who the customer is — and separately, none of them do."
+/>
+
+So each integration re-implements "is this the same customer?" against three different answers, and every app you add multiplies the glue. You don't have an integration problem. You have an identity that lives in the wrong number of places.
+
+## The real constraint: the org shape got baked into the data
+
+**The constraint was never technical difficulty. It was that a decision made for delivery speed silently became the shape of the product.** We built three apps because we shipped three problems independently, and the fastest path was to let each own everything it needed — users and organizations included. That independence went straight into the data model. When the business model stopped being independent — customers who wanted the whole suite, partners who wanted the apps to feed each other — the data was still shaped like three separate businesses.
+
+Nobody ever chose "our customers can never span apps." It was chosen for us, by the shortcut, and it stayed invisible until the first request that needed the apps to know each other.
 
 <CompareCards
   cards={[
     {
       tone: 'bad',
-      title: 'Each team maintains its own copy',
-      text: 'Every part of the product stores what it knows about the customer. Coordination keeps them aligned — until it doesn\'t. The gap shows up as a customer bug, and no one owns the fix.',
-      tag: 'the cause has no owner',
+      title: 'Each app owns its own identity',
+      text: 'Every app has its own login, its own users, its own idea of an organization. A relationship that spans two apps — one company, one account, one connection — has nowhere to live. You can\'t build what the model can\'t express.',
+      tag: 'the relationship has nowhere to live',
     },
     {
       tone: 'good',
-      title: 'One system owns the answer',
-      text: 'Every part of the product reads from the same source. No team maintains a local copy. The answer is the same wherever you ask, because there is only one place to ask.',
-      tag: 'one source of truth',
+      title: 'One system owns identity',
+      text: 'Every app reads who a customer is from the same place. One org spanning apps, one user across orgs, one app feeding another — each becomes a fact to record, not an integration to invent.',
+      tag: 'relationships become facts',
     },
   ]}
 />
 
-## The system I built
+## The call: pull identity into one owned system — on the first relationship, not the third
 
-I built that system. IAM is the single owner of who a customer is and everything that gates what they can do — and every other service reads from it instead of keeping a copy:
+I built one system to own identity: who a customer is, which organizations exist, who belongs to which, and everything that gates what they can do. Every app reads from it; none keep their own copy.
 
 <FanOut
-  source={{ label: 'IAM', note: 'one owner of the answer' }}
+  source={{ label: 'IAM', note: 'one owner of identity' }}
   targets={[
-    { label: 'Organization', note: 'one customer record', tone: 'accent' },
-    { label: 'User', note: 'who, and what they can do', tone: 'accent' },
-    { label: 'Feature flag', note: 'who sees what, when', tone: 'accent' },
-    { label: 'Config', note: 'each customer’s settings', tone: 'accent' },
-    { label: 'Rules', note: 'business logic, no deploy', tone: 'accent' },
+    { label: 'Organization', note: 'one company, across apps', tone: 'accent' },
+    { label: 'User', note: 'one person, across orgs', tone: 'accent' },
+    { label: 'Membership', note: 'who belongs to what', tone: 'accent' },
+    { label: 'Access', note: 'what each can do', tone: 'accent' },
+    { label: 'Connections', note: 'which apps feed which', tone: 'accent' },
   ]}
-  caption="One system owns these decisions; every other part of the product reads from it."
+  caption="One system owns identity and the relationships between customers, orgs, and apps; every app reads from it."
 />
+
+The timing matters as much as the decision. The cost of moving identity only grows — every app you add and every user record that accumulates makes the migration heavier. The signal to consolidate is the *first* business request that needs two apps to agree on who the customer is, not the third, by which point you're rebuilding live under a deadline you've already missed. When the first cross-app relationship lands, that's the moment identity earns its own owner.
 
 The deep tour of each piece — what the records are, why they exist, and what breaks without them — is a separate write-up: [Identity and access management as one system](/product/introduce-iam-system).
 
 ## What changed my mind
 
-I used to let teams keep their own copies on purpose. Forcing every team to depend on one system felt like premature centralization — slower to build, a dependency no one asked for, a bottleneck waiting to happen. Local copies were faster, and for a long time they worked. So I let them.
+I used to read "keep it simple" as "let each app own its own users." Fewer dependencies, no central team to coordinate with, every app shipping on its own clock. For three independent apps that was correct, and I'd make the same call again at that stage. What I got wrong was treating it as a permanent architecture instead of a stage.
 
-What broke that wasn't an architecture argument. It was watching the same customer-facing bug recur with a different team's name on it each time, and realizing no retro ever fixed the actual cause, because the cause had no owner. The cost of duplication isn't paid in build time — it's paid in incidents that nobody is responsible for preventing. Once I'd seen that bill come due a few times, the "premature" centralization stopped looking premature.
+The belief broke the day a routine ask — let one company use two of our apps with one login — turned into a multi-month rebuild. The ask needed a property of an identity model we'd never built. The shortcut hadn't made us slower; it had built a wall, and we only saw it when we walked into it.
 
 ## The trade-off
 
-A single owner trades a diffuse, deniable cost for a concentrated, visible one. That's usually the right trade — a cost you can see is a cost you can manage — but it's a real trade, and it fails in specific ways.
+A single owned identity system trades many small, invisible costs for one large, visible one. That's usually the right trade — a cost you can see is a cost you can manage — but it's real, and it fails in specific ways.
 
 | Benefit | Cost | Failure mode |
 |---|---|---|
-| One authoritative answer, no drift | Every team now depends on one team | The owning team becomes a bottleneck; every change queues behind it |
-| A whole class of orphaned bugs disappears | A genuine single point of failure | The system goes down and every product surface degrades at once |
-| Onboarding and launches stop needing coordination | The owning team must run like infrastructure | Treated as a normal feature team, it can't keep up and teams route around it — recreating the copies |
+| Relationships across apps become expressible | Every app now depends on one team | The owning team becomes a bottleneck; every identity change queues behind it |
+| No app re-implements "who is this customer" | A genuine single point of failure | The system goes down and every app degrades at once |
+| One customer, one account, one onboarding | The owning team must run like infrastructure | Staffed as a feature team, it falls behind, apps quietly keep their own copies again — recreating the fragmentation you paid to remove |
 
-The bottleneck is the one that bites first. The moment one team owns the answer, every other team's change to that answer goes through them, and a team that's staffed and prioritized like a feature team will fall behind. The fix isn't to redistribute ownership — that just brings the drift back. It's to fund and operate the owning team as infrastructure: capacity ahead of demand, self-service for the common changes, and a clear bar for what actually needs the owning team's involvement versus what a consuming team can do itself. Centralize the answer; decentralize as much of the work of changing it as you safely can.
+The bottleneck bites first. The moment one system owns identity, every app's change to a user, an org, or a permission goes through the team that owns it — and a team funded like a feature team falls behind, at which point apps route around it and the copies come back. The fix isn't to hand ownership back; that just returns the wall. It's to run the owning team as infrastructure: capacity ahead of demand, self-service for the common changes, and a clear line between what genuinely needs the owning team and what an app team can safely do itself. Centralize what identity *is*; push the work of changing it out to the edges.
 
 ## One decision for tomorrow
 
-In your next incident review involving a data inconsistency — wrong customer state, access that should have been revoked, configuration that didn't apply — ask one question after the fix ships: if this record were wrong tomorrow, who would be first to know, and who would own fixing it? If the answer is "it depends which system surfaces it first," that's the gap. Assign a single owner before the next incident, not after.
+Next time a product or business request needs two of your apps to know about the same customer, org, or user, stop before you scope the integration and ask one thing: is this a connection between two apps, or a relationship my identity model can't express? If it's the second, you've found the wall — and the cheapest time to move identity into one owner is that first request, not the third.
